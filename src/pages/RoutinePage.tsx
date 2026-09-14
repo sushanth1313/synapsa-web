@@ -1,5 +1,5 @@
 // ============================================================
-// Smarani NER — Daily Routine Page
+// SYNAPSA — Daily Routine Page
 // Visual routine cards with completion tracking (SIH Integrated)
 // ============================================================
 

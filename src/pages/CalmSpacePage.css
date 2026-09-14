@@ -29,18 +29,23 @@
 
 .calm-split {
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
   flex: 1;
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
 }
 
 .calm-typography {
-  flex: 1;
-  max-width: 600px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  align-items: center;
+  text-align: center;
+  gap: 32px;
+  pointer-events: auto;
 }
 
 .calm-title-animate {
@@ -48,12 +53,14 @@
 }
 
 .calm-visual {
-  flex: 1;
-  height: 60vh;
+  position: absolute;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  z-index: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  position: relative;
 }
 
 .calm-visual-container {

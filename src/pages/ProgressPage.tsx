@@ -1,5 +1,5 @@
 // ============================================================
-// Smarani NER — Progress Page
+// SYNAPSA — Progress Page
 // Visualizes stats, streak, accuracy, and AI insights.
 // ============================================================
 

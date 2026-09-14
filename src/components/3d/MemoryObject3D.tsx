@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Text, RoundedBox } from '@react-three/drei';
+import { Text, RoundedBox, Sparkles } from '@react-three/drei';
 import * as THREE from 'three';
 
 interface Props {
@@ -41,9 +41,10 @@ export const MemoryObject3D: React.FC<Props> = ({ id, emoji, label, position, is
     }
   });
 
-  // Void aesthetic colors
-  const cardColor = isMissing ? '#000000' : '#000000';
-  const borderColor = isMissing ? '#ffb829' : (hovered ? '#ffffff' : '#333333');
+  // SYNAPSA aesthetic colors
+  const cardColor = isMissing ? '#0a0e12' : '#123529'; // Deep tea-green
+  const borderColor = isMissing ? '#F59E0B' : (hovered ? '#ffffff' : '#2A6B57');
+  const glowColor = isMatched ? '#15803D' : '#F59E0B';
 
   return (
     <group 
@@ -63,17 +64,17 @@ export const MemoryObject3D: React.FC<Props> = ({ id, emoji, label, position, is
         {/* Core material */}
         <meshStandardMaterial 
           color={cardColor} 
-          metalness={0.8}
+          metalness={0.6}
           roughness={0.2}
-          emissive={isMissing ? '#ffb829' : '#000000'}
-          emissiveIntensity={isMissing ? 0.2 : 0}
+          emissive={isMatched ? glowColor : (isMissing ? '#F59E0B' : '#05070a')}
+          emissiveIntensity={isMatched ? 0.8 : (isMissing ? 0.2 : 0)}
           wireframe={isMissing}
         />
         
         {/* Glowing Edge outline */}
         <lineSegments>
           <edgesGeometry attach="geometry" args={[new THREE.BoxGeometry(1.5, 1.5, 0.2)]} />
-          <lineBasicMaterial attach="material" color={borderColor} linewidth={2} />
+          <lineBasicMaterial attach="material" color={borderColor} linewidth={2} transparent opacity={0.6} />
         </lineSegments>
       </RoundedBox>
 
@@ -100,19 +101,36 @@ export const MemoryObject3D: React.FC<Props> = ({ id, emoji, label, position, is
         </Text>
       </group>
 
-      {/* Back Face (Smarani Logo / Pattern) */}
+      {/* Back Face (SYNAPSA Logo / Pattern) */}
       <group position={[0, 0, -0.11]} rotation={[0, Math.PI, 0]}>
         <Text 
           position={[0, 0, 0]} 
-          fontSize={0.4} 
-          color="#8052ff"
-          font="https://fonts.gstatic.com/s/outfit/v11/QGYyz_MVcBeNP4NJtEtq.woff"
+          fontSize={0.22} 
+          color="#aab4ad"
+          letterSpacing={0.2}
           anchorX="center" 
           anchorY="middle"
         >
-          DALA
+          SYNAPSA
         </Text>
+        {/* Cultural Geometric Motif */}
+        <mesh position={[0, 0, -0.01]} rotation={[0, 0, Math.PI / 4]}>
+          <ringGeometry args={[0.5, 0.52, 4]} />
+          <meshBasicMaterial color="#2A6B57" transparent opacity={0.4} />
+        </mesh>
       </group>
+
+      {/* Celebration Particles */}
+      {isMatched && (
+        <Sparkles 
+          count={20} 
+          scale={2.5} 
+          size={4} 
+          speed={0.8} 
+          opacity={0.8} 
+          color="#10b981" 
+        />
+      )}
     </group>
   );
 };

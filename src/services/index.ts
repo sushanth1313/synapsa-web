@@ -1,5 +1,5 @@
 // ============================================================
-// Smarani NER — Service Layer
+// SYNAPSA — Service Layer
 // Clean abstractions ready to connect to real APIs
 // ============================================================
 
@@ -272,9 +272,10 @@ export class AnalyticsService {
 
   static recordGameResult(_result: GameResult): void {
     // Mock: would push to backend
-    const existing = JSON.parse(localStorage.getItem('smarani_results') ?? '[]');
+    const existing = JSON.parse(localStorage.getItem('synapsa_results') ?? '[]');
     existing.push(_result);
-    localStorage.setItem('smarani_results', JSON.stringify(existing.slice(-100)));
+    // Keep last 100 results to avoid massive localStorage
+    localStorage.setItem('synapsa_results', JSON.stringify(existing.slice(-100)));
   }
 
   static recordRoutineAction(_id: string, _completed: boolean): void {

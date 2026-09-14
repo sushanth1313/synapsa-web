@@ -1,14 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-dotenv.config();
 
 const app = express();
 app.use(cors());
@@ -145,15 +137,5 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
-// Serve static files from the React app (for production deployment on Render)
-app.use(express.static(path.join(__dirname, 'dist')));
-
-// The "catchall" handler: for any request that doesn't match an API route, send back React's index.html file.
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-});
-
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`NOVA AI Backend running on http://localhost:${PORT}`);
-});
+// Export the express app so Vercel can wrap it as a serverless function
+export default app;

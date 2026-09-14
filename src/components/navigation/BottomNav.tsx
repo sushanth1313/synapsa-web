@@ -1,5 +1,5 @@
 // ============================================================
-// Smarani NER — Bottom Navigation (Premium Redesign)
+// SYNAPSA — Bottom Navigation (Premium Redesign)
 // ============================================================
 
 import React from 'react';

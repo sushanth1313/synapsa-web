@@ -1,5 +1,5 @@
 // ============================================================
-// Smarani NER — Companion Page
+// SYNAPSA — Companion Page
 // AI voice companion with full interaction states (SIH Integrated)
 // ============================================================
 

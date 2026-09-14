@@ -121,18 +121,18 @@
 .routine-card {
   display: flex;
   align-items: center;
-  gap: 24px;
-  padding: 32px;
-  background: rgba(10, 15, 20, 0.6);
-  backdrop-filter: blur(16px);
-  border-radius: 24px;
+  gap: 32px;
+  padding: 40px;
+  background: rgba(10, 15, 20, 0.4);
+  backdrop-filter: blur(24px);
+  border-radius: 32px;
   border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
   transition:
     transform var(--duration-standard) var(--ease-standard),
     background var(--duration-standard) var(--ease-standard),
     opacity var(--duration-standard) var(--ease-standard);
-  min-height: 120px;
+  min-height: 160px;
 }
 
 .routine-card--done {
@@ -151,9 +151,9 @@
 .routine-card-icon-wrap {
   position: relative;
   flex-shrink: 0;
-  width: 80px;
-  height: 80px;
-  border-radius: 20px;
+  width: 96px;
+  height: 96px;
+  border-radius: 24px;
   background: var(--routine-bg, #E8F5EE);
   display: flex;
   align-items: center;
@@ -198,7 +198,7 @@
 }
 
 .routine-card-label {
-  font-size: clamp(26px, 3.2vw, 36px);
+  font-size: clamp(32px, 4vw, 48px);
   font-weight: 500;
   color: var(--bone);
   line-height: 1.1;

@@ -1,5 +1,5 @@
 // ============================================================
-// Smarani NER — Sequence Memory Game
+// SYNAPSA — Sequence Memory Game
 // Watch the sequence. Tap in order. Fully playable.
 // ============================================================
 

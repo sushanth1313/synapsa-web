@@ -1,5 +1,5 @@
 // ============================================================
-// Smarani NER — Custom Hooks
+// SYNAPSA — Custom Hooks
 // ============================================================
 
 import { useEffect, useRef, useState, useCallback } from 'react';

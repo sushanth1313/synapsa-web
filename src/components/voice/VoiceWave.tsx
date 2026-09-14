@@ -1,5 +1,5 @@
 // ============================================================
-// Smarani NER — Voice Visualization
+// SYNAPSA — Voice Visualization
 // Organic waveform ribbon around the avatar
 // ============================================================
 

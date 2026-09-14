@@ -1,8 +1,8 @@
 import type { ActivityHistory, RoutineItem } from '../types';
 
 export class DatabaseService {
-  private static ACTIVITY_KEY = 'smarani_activity';
-  private static ROUTINE_KEY = 'smarani_routine';
+  private static ACTIVITY_KEY = 'synapsa_activity';
+  private static ROUTINE_KEY = 'synapsa_routine';
 
   // --- Activity History ---
 

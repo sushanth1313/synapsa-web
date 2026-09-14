@@ -1,5 +1,5 @@
 // ============================================================
-// Smarani NER — i18n / Localization
+// SYNAPSA — i18n / Localization
 // ============================================================
 
 export type Locale = 'as' | 'bn' | 'hi' | 'en';
@@ -9,7 +9,7 @@ export type Strings = {
   greeting: string;
   playMemoryGame: string;
   dailyRoutine: string;
-  talkToSmarani: string;
+  talkToSynapsa: string;
   calmSpace: string;
   caregiver: string;
   home: string;
@@ -68,7 +68,7 @@ const translations: Record<Locale, Strings> = {
     greeting: 'Hello! I am NOVA. How are you today?',
     playMemoryGame: 'Memory Game',
     dailyRoutine: 'Daily Routine',
-    talkToSmarani: 'Talk to NOVA',
+    talkToSynapsa: 'Talk to NOVA',
     calmSpace: 'Calm Space',
     caregiver: 'Caregiver',
     home: 'Home',
@@ -125,7 +125,7 @@ const translations: Record<Locale, Strings> = {
     greeting: 'নমস্কাৰ! মই স্মাৰণি। আপুনি আজি কেনে আছে?',
     playMemoryGame: 'স্মৃতি খেল',
     dailyRoutine: 'দৈনিক ৰুটিন',
-    talkToSmarani: 'স্মাৰণিৰ সৈতে কথা',
+    talkToSynapsa: 'স্মাৰণিৰ সৈতে কথা',
     calmSpace: 'শান্ত ঠাই',
     caregiver: 'পৰিচালক',
     home: 'ঘৰ',
@@ -182,7 +182,7 @@ const translations: Record<Locale, Strings> = {
     greeting: 'নমস্কার! আমি স্মারণি। আজকে কেমন আছেন?',
     playMemoryGame: 'স্মৃতি খেলা',
     dailyRoutine: 'দৈনিক রুটিন',
-    talkToSmarani: 'স্মারণির সাথে কথা',
+    talkToSynapsa: 'স্মারণির সাথে কথা',
     calmSpace: 'শান্ত স্থান',
     caregiver: 'পরিচর্যাকারী',
     home: 'হোম',
@@ -239,7 +239,7 @@ const translations: Record<Locale, Strings> = {
     greeting: 'नमस्ते! मैं स्मारणी हूँ। आज आप कैसे हैं?',
     playMemoryGame: 'याददाश्त खेल',
     dailyRoutine: 'दैनिक दिनचर्या',
-    talkToSmarani: 'स्मारणी से बात करें',
+    talkToSynapsa: 'स्मारणी से बात करें',
     calmSpace: 'शांत स्थान',
     caregiver: 'देखभालकर्ता',
     home: 'होम',

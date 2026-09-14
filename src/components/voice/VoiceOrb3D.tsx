@@ -1,5 +1,5 @@
 // ============================================================
-// Smarani NER — VoiceOrb3D
+// SYNAPSA — VoiceOrb3D
 // Audio-reactive 3D orb for companion page
 // ============================================================
 

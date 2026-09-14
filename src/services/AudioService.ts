@@ -1,5 +1,5 @@
 // ============================================================
-// Smarani NER — Audio Service
+// SYNAPSA — Audio Service
 // Web Audio API synthesizer for ambient and interaction sounds
 // ============================================================
 

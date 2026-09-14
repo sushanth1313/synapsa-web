@@ -1,5 +1,5 @@
 // ============================================================
-// Smarani NER — Global State (Zustand)
+// SYNAPSA — Global State (Zustand)
 // ============================================================
 
 import { create } from 'zustand';

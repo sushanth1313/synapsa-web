@@ -4,18 +4,20 @@ import { motion as motionTokens } from './index';
 // ── Page & Layout ───────────────────────────────────────────
 
 export const pageVariants: Variants = {
-  initial: { opacity: 0, filter: 'blur(10px)', y: 20 },
+  initial: { opacity: 0, filter: 'blur(20px)', y: 30, scale: 0.98 },
   animate: { 
     opacity: 1, 
     filter: 'blur(0px)', 
     y: 0, 
-    transition: { duration: 1.0, ease: [0.16, 1, 0.3, 1], delay: 0.1 } 
+    scale: 1,
+    transition: { duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.1 } 
   },
   exit: { 
     opacity: 0, 
-    filter: 'blur(10px)', 
-    y: -10, 
-    transition: { duration: 0.5, ease: [0.4, 0, 0.2, 1] } 
+    filter: 'blur(20px)', 
+    y: -20,
+    scale: 1.02,
+    transition: { duration: 0.8, ease: [0.4, 0, 0.2, 1] } 
   },
 };
 
@@ -73,12 +75,12 @@ export const scaleIn: Variants = {
 // ── Cinematic Text Reveals ───────────────────────────────────
 
 export const cinematicText: Variants = {
-  hidden: { opacity: 0, y: 32, filter: 'blur(16px)' },
+  hidden: { opacity: 0, y: 40, filter: 'blur(24px)' },
   show: {
     opacity: 1,
     y: 0,
     filter: 'blur(0px)',
-    transition: { duration: 1.2, ease: [0.16, 1, 0.3, 1] },
+    transition: { duration: 1.6, ease: [0.16, 1, 0.3, 1] },
   },
 };
 
@@ -110,7 +112,7 @@ export const drawerVariants: Variants = {
   exit: { y: '100%', transition: { duration: 0.3, ease: [0.4, 0, 1, 1] } },
 };
 
-// ── Specialized Smarani States ───────────────────────────────
+// ── Specialized SYNAPSA States ───────────────────────────────
 
 export const gentleFloat: Variants = {
   animate: {

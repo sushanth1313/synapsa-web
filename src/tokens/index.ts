@@ -1,5 +1,5 @@
 // ============================================================
-// SMARANI NER — Design Tokens
+// SYNAPSA — Design Tokens
 // Centralized source of truth for all design values
 // ============================================================
 

@@ -2,8 +2,8 @@ import type { User, RoutineItem } from '../types';
 import { DatabaseService } from './DatabaseService';
 
 export class AuthService {
-  private static USERS_KEY = 'smarani_users';
-  private static CURRENT_USER_KEY = 'smarani_current_user';
+  private static USERS_KEY = 'synapsa_users';
+  private static CURRENT_USER_KEY = 'synapsa_current_user';
 
   static getUsers(): User[] {
     try {

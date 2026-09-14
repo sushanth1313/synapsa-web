@@ -58,8 +58,9 @@
   width: 100%;
 }
 .games-title {
-  font-size: clamp(40px, 5vw, 64px);
+  font-size: clamp(48px, 6vw, 80px);
   margin-bottom: 16px;
+  font-weight: 300;
 }
 .games-subtitle {
   color: var(--bone-dim);
@@ -87,33 +88,35 @@
 
 .games-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 32px;
 }
 
 /* ============================================================= game-card */
 .game-card {
-  background: rgba(10, 15, 20, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(10, 15, 20, 0.4);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 24px;
-  padding: 32px;
+  border-radius: 32px;
+  padding: 48px;
   display: flex;
   flex-direction: column;
   position: relative;
   overflow: hidden;
   cursor: pointer;
-  transition: border-color 0.3s, box-shadow 0.3s;
+  transition: transform 0.4s var(--ease), border-color 0.4s, box-shadow 0.4s;
+  min-height: 400px;
 }
 .game-card::before {
-  content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+  content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 6px;
   background: var(--game-color, var(--color-tea-green));
   opacity: 0.8;
 }
 .game-card:hover {
   border-color: rgba(255,255,255,0.15);
-  box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  transform: translateY(-8px) scale(1.02);
 }
 
 .game-card-body {
@@ -122,10 +125,10 @@
   flex-direction: column;
 }
 .game-card-title {
-  font-size: 28px;
-  font-weight: 400;
+  font-size: clamp(32px, 4vw, 40px);
+  font-weight: 300;
   color: var(--bone);
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 }
 .game-card-skill {
   font-size: 14px;

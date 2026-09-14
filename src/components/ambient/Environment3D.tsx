@@ -1,5 +1,5 @@
 // ============================================================
-// Smarani NER — Environment3D Component
+// SYNAPSA — Environment3D Component
 // Cinematic spatial background using Three.js and Fiber
 // ============================================================
 

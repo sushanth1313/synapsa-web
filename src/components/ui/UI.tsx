@@ -1,5 +1,5 @@
 // ============================================================
-// Smarani NER — Shared UI Components
+// SYNAPSA — Shared UI Components
 // Button, Card, ProgressRing, Toast, Modal, StatusIndicator
 // ============================================================
 

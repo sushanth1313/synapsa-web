@@ -1,5 +1,5 @@
 // ============================================================
-// Smarani NER — RewardFlower3D
+// SYNAPSA — RewardFlower3D
 // Kopou Phool (orchid) particle burst for successful actions
 // ============================================================
 

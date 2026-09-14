@@ -1,5 +1,5 @@
 // ============================================================
-// Smarani NER — Memory Match Game (Premium Redesign)
+// SYNAPSA — Memory Match Game (Premium Redesign)
 // ============================================================
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';

@@ -1,5 +1,5 @@
 // ============================================================
-// Smarani NER — Ambient Background Component
+// SYNAPSA — Ambient Background Component
 // Multi-layer parallax tea garden environment
 // ============================================================
 

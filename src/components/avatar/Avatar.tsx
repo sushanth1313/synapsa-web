@@ -1,5 +1,5 @@
 // ============================================================
-// Smarani NER — Smarani Avatar Component
+// SYNAPSA — SYNAPSA Avatar Component
 // AI companion with expressive states and animations
 // ============================================================
 
