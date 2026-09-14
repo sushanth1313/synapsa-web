@@ -1,0 +1,396 @@
+/* ============================================================
+   Smarani NER — Sequence Memory Game Page
+   ============================================================ */
+
+.pattern-page {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+  padding: calc(var(--nav-h) + clamp(12px,2.6vh,28px)) var(--pad) clamp(100px,12vh,120px);
+  z-index: 2;
+}
+
+/* ── Eyebrow dot ────────────────────────────────────────── */
+.eyebrow .dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--vermilion);
+  box-shadow: 0 0 10px var(--vermilion);
+  display: inline-block;
+}
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ── Intro screen ───────────────────────────────────────── */
+.game-intro-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  max-width: 600px;
+  padding-top: clamp(8px,2vh,32px);
+}
+
+.seq-title { margin: 0; }
+.seq-desc { max-width: 460px; }
+.seq-desc em { font-style: italic; color: var(--bone); }
+
+/* ── Demo sequence ──────────────────────────────────────── */
+.seq-demo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.seq-demo-item {
+  font-size: clamp(64px,8vw,96px);
+  width: 140px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(5,7,10,0.5);
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6));
+}
+
+.seq-demo-item--q {
+  color: var(--ember);
+  border-color: var(--ember);
+  font-size: 64px;
+  font-weight: 600;
+}
+
+.seq-demo-arrow {
+  font-size: 56px;
+  color: var(--muted);
+}
+
+/* ── Difficulty selector ────────────────────────────────── */
+.difficulty-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.difficulty-label {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0;
+}
+
+.difficulty-btns {
+  display: flex;
+  gap: 16px;
+}
+
+.difficulty-btn {
+  padding: 16px 32px;
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--bone-dim);
+  transition: all .3s var(--ease);
+  min-height: 64px;
+  cursor: pointer;
+}
+.difficulty-btn:hover {
+  border-color: var(--bone-dim);
+  color: var(--bone);
+}
+.difficulty-btn--active {
+  border-color: var(--bone);
+  color: var(--bone);
+  background: rgba(223,231,224,0.08);
+}
+
+/* ── Game area shared ───────────────────────────────────── */
+.seq-game-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  flex: 1;
+  padding-top: clamp(8px,2vh,32px);
+}
+
+.seq-instruction {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.seq-watch-text {
+  font-size: clamp(32px,4vw,48px);
+  font-weight: 300;
+  color: var(--bone);
+  margin: 0;
+  letter-spacing: -.01em;
+}
+
+.seq-length-hint {
+  font-size: 13px;
+  color: var(--muted);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* ── Sequence display grid ───────────────────────────── */
+.seq-display-grid {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 1400px;  /* Much wider for large symbols */
+}
+
+.seq-symbol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 200px;    /* Much larger */
+  height: 240px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(5,7,10,0.65);
+  backdrop-filter: blur(8px);
+  justify-content: center;
+  transition: border-color .2s, box-shadow .3s;
+}
+
+.seq-symbol--active {
+  border-color: rgba(245,158,11,0.7);
+  background: rgba(245,158,11,0.08);
+  box-shadow: 0 0 40px rgba(245,158,11,0.25);
+}
+
+.seq-symbol-emoji {
+  font-size: 100px;
+  line-height: 1;
+  filter: drop-shadow(0 6px 16px rgba(0,0,0,0.7));
+}
+
+.seq-symbol-num {
+  font-size: 24px;
+  letter-spacing: .14em;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* ── Progress bar ───────────────────────────────────────── */
+.seq-progress-bar {
+  width: 600px;
+  height: 8px;
+  background: var(--line);
+  border-radius: 100px;
+  overflow: hidden;
+}
+
+.seq-progress-fill {
+  height: 100%;
+  background: var(--bone-dim);
+  border-radius: 100px;
+  transition: width .3s var(--ease-out);
+}
+
+.seq-tap-hint {
+  font-size: 24px;
+  color: var(--muted);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* ── User tap progress dots ─────────────────────────────── */
+.seq-user-progress {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.seq-progress-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--line);
+  border: 1px solid var(--bone-dim);
+  transition: background .2s;
+}
+
+.seq-progress-dot--done {
+  background: var(--bone);
+}
+
+/* ── Tap button grid ──────────────────────────────── */
+.seq-tap-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(24px, 4vw, 48px);
+  width: 100%;
+  max-width: 1200px;  /* Wider tap grid */
+}
+
+.seq-tap-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 220px;  /* Much taller, easier to tap */
+  min-width: 160px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: rgba(5,7,10,0.75);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: all .25s var(--ease);
+  padding: 24px 16px;
+}
+
+.seq-tap-btn:hover {
+  border-color: rgba(223,231,224,0.35);
+  background: rgba(223,231,224,0.07);
+  transform: translateY(-5px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+}
+
+.seq-tap-btn:active {
+  transform: scale(0.93);
+}
+
+.seq-tap-emoji {
+  font-size: clamp(64px,8vw,100px);
+  line-height: 1;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6));
+}
+
+.seq-tap-label {
+  font-size: 20px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* ── Feedback screens ───────────────────────────────────── */
+.seq-feedback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 20px;
+  min-height: 400px;
+  flex: 1;
+}
+
+/* ── Complete screen ────────────────────────────────────── */
+.game-complete {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 24px;
+  padding: clamp(32px,6vh,72px) 0;
+  min-height: 400px;
+}
+
+.complete-icon {
+  font-size: clamp(56px,8vw,80px);
+  filter: drop-shadow(0 4px 24px rgba(0,0,0,0.7));
+}
+
+.complete-stats-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.complete-stat-card {
+  background: rgba(10, 15, 20, 0.7);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 32px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-width: 220px;
+}
+
+.c-stat-label {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.c-stat-value {
+  font-size: 48px;
+  color: var(--bone);
+  font-weight: 300;
+  line-height: 1;
+}
+
+.c-stat-trend {
+  font-size: 14px;
+  color: var(--color-tea-green);
+  font-weight: 500;
+}
+
+.complete-actions {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+/* Shared feedback icon */
+.feedback-icon {
+  font-size: clamp(48px,7vw,72px);
+  filter: drop-shadow(0 4px 20px rgba(0,0,0,0.6));
+}
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .seq-tap-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  .seq-tap-btn {
+    min-height: 76px;
+  }
+
+  .complete-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .difficulty-btns {
+    flex-direction: column;
+  }
+}

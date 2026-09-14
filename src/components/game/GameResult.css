@@ -1,0 +1,126 @@
+.game-result-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 24px;
+  z-index: 10;
+}
+
+.game-result-content {
+  width: 100%;
+  max-width: 600px;
+  background: rgba(10, 15, 20, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  box-shadow: 0 32px 64px rgba(0, 0, 0, 0.4);
+}
+
+.gr-header {
+  text-align: center;
+}
+
+.gr-eyebrow {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.gr-title {
+  font-size: 36px;
+  font-weight: 400;
+  color: var(--bone);
+}
+
+.gr-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 16px;
+}
+
+.gr-stat-card {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.gr-stat-label {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.gr-stat-value {
+  font-size: 32px;
+  font-weight: 300;
+  color: var(--bone);
+}
+
+.gr-insight-card {
+  background: rgba(42, 107, 87, 0.15);
+  border: 1px solid rgba(42, 107, 87, 0.3);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.gr-insight-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: var(--color-tea-green);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.nova-dot-small {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-tea-green);
+  box-shadow: 0 0 8px var(--color-tea-green);
+}
+
+.gr-insight-text {
+  font-size: 18px;
+  line-height: 1.5;
+  color: var(--bone);
+  font-weight: 400;
+}
+
+.gr-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gr-actions .void-btn {
+  width: 100%;
+  padding: 16px;
+}
+
+@media (max-width: 600px) {
+  .game-result-content {
+    padding: 32px 24px;
+  }
+}

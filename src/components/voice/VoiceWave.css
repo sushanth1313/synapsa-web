@@ -1,0 +1,34 @@
+/* VoiceWave Styles */
+
+.voice-wave {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.voice-wave-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Bar visualizer ────────────────────────────────────────── */
+.voice-bars {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 40px;
+}
+
+.voice-bar {
+  display: block;
+  width: 4px;
+  border-radius: var(--radius-full);
+  min-height: 4px;
+  transition: height var(--duration-fast) var(--ease-standard);
+  animation: voiceBar 0.8s ease-in-out infinite;
+}
+
+.voice-bar--listening { background: var(--color-amber); }
+.voice-bar--speaking  { background: var(--color-tea-green); }

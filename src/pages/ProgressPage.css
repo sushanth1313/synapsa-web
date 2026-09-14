@@ -1,0 +1,219 @@
+/* ============================================================
+   Smarani NER — Progress Page Styles
+============================================================ */
+
+.progress-page {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--pad);
+  padding-bottom: clamp(120px, 15vh, 160px);
+}
+
+.progress-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 0;
+  background: linear-gradient(to bottom, rgba(5,7,10,0.9), transparent);
+}
+
+.progress-header-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  letter-spacing: 0.2em;
+  font-weight: 500;
+  color: var(--bone-dim);
+}
+
+.progress-content {
+  flex: 1;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(32px, 5vh, 48px);
+  padding-top: 4vh;
+}
+
+.progress-title {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+/* TOP METRICS */
+.progress-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+@media (min-width: 768px) {
+  .progress-metrics-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.progress-metric-card {
+  background: rgba(10, 15, 20, 0.6);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+}
+
+.streak-card {
+  border-color: rgba(217, 119, 6, 0.4);
+  background: rgba(217, 119, 6, 0.05);
+}
+.streak-card .metric-value {
+  color: #D97706;
+  text-shadow: 0 0 12px rgba(217, 119, 6, 0.3);
+}
+
+.metric-label {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.metric-value {
+  font-size: clamp(28px, 3.5vw, 36px);
+  color: var(--bone);
+  font-weight: 300;
+}
+
+/* WEEKLY CHART */
+.progress-chart-section {
+  width: 100%;
+}
+.section-title {
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--bone-dim);
+  margin-bottom: 24px;
+}
+
+.chart-container {
+  background: rgba(10, 15, 20, 0.4);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 20px;
+  padding: 32px 24px;
+}
+
+.chart-bars {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 200px;
+  gap: 8px;
+}
+
+.chart-bar-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.chart-bar-bg {
+  width: clamp(24px, 4vw, 40px);
+  height: 160px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 100px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  position: relative;
+}
+
+.chart-bar-fill {
+  width: 100%;
+  background: linear-gradient(to top, var(--color-tea-green), var(--bone));
+  border-radius: 100px;
+}
+
+.chart-day {
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* AI INSIGHTS */
+.progress-insight-section {
+  width: 100%;
+}
+
+.insight-card {
+  background: rgba(18, 30, 26, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(42, 107, 87, 0.3);
+  border-radius: 20px;
+  padding: 32px;
+  position: relative;
+}
+
+.insight-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-tea-green), transparent);
+  opacity: 0.5;
+}
+
+.insight-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: var(--color-tea-green);
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+
+.insight-text {
+  font-size: clamp(20px, 2.5vw, 28px);
+  line-height: 1.4;
+  color: var(--bone);
+  font-weight: 300;
+  font-style: italic;
+}
+
+/* SKELETON LOADER */
+.skeleton-pulse {
+  background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+.skeleton-text-sm {
+  width: 60%;
+  height: 14px;
+}
+
+.skeleton-text-lg {
+  width: 80%;
+  height: 36px;
+  margin-top: 8px;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

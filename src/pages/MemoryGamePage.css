@@ -1,0 +1,455 @@
+/* ============================================================
+   Smarani NER — Memory Match Game Page (Premium Redesign)
+   ============================================================ */
+
+.memory-page {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  /* Transparent to show 3D world */
+  background: transparent;
+  padding: calc(var(--nav-h) + clamp(8px,1.8vh,20px)) var(--pad) clamp(110px,13vh,130px);
+  z-index: 2;
+  overflow: hidden;
+}
+
+/* Atmospheric particles in the background (optional) */
+.memory-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ── Header / HUD ───────────────────────────────────────── */
+.game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: clamp(24px,4vh,48px);
+  position: relative;
+  z-index: 10;
+}
+
+.game-title-hud {
+  font-family: 'Lexend', 'Atkinson Hyperlegible', sans-serif;
+  font-size: clamp(20px, 3vw, 24px);
+  font-weight: 500;
+  color: var(--bone);
+  letter-spacing: -0.01em;
+}
+
+.game-stats {
+  display: flex;
+  gap: clamp(24px, 4vw, 48px);
+}
+.game-stats div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.game-stats b {
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 400;
+  color: var(--bone);
+  line-height: 1;
+}
+.game-stats span {
+  font-size: 12px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+.game-complete {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  height: 100%;
+}
+
+.complete-stats-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.complete-stat-card {
+  background: rgba(10, 15, 20, 0.7);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 32px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-width: 220px;
+}
+
+.c-stat-label {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.c-stat-value {
+  font-size: 48px;
+  color: var(--bone);
+  font-weight: 300;
+  line-height: 1;
+}
+
+.c-stat-trend {
+  font-size: 14px;
+  color: var(--color-tea-green);
+  font-weight: 500;
+}
+
+.complete-actions {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+/* ── Match feedback banner ──────────────────────────────── */
+.match-feedback {
+  position: fixed;
+  top: calc(var(--nav-h) + 16px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 90;
+  padding: 12px 32px;
+  border-radius: 100px;
+  font-family: 'Lexend', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: .02em;
+  pointer-events: none;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.match-feedback--correct {
+  background: rgba(22, 101, 52, 0.4);
+  color: #a7f3d0;
+  border: 1px solid rgba(167, 243, 208, 0.2);
+  box-shadow: 0 8px 32px rgba(22, 101, 52, 0.3);
+}
+.match-feedback--wrong {
+  background: rgba(27, 27, 31, 0.6);
+  color: var(--bone-dim);
+  border: 1px solid var(--line);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Main content ───────────────────────────────────────── */
+.game-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Intro screen ───────────────────────────────────────── */
+.game-intro-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 32px;
+  max-width: 600px;
+  padding-top: clamp(16px, 3vh, 40px);
+}
+
+.memory-game-title {
+  font-family: 'Lexend', sans-serif;
+  font-size: clamp(48px, 6vw, 64px);
+  font-weight: 400;
+  margin: 0;
+  color: var(--bone);
+  line-height: 1.1;
+}
+
+.memory-game-desc {
+  font-size: clamp(28px, 3vw, 36px);
+  color: var(--bone-dim);
+  max-width: 800px;
+  line-height: 1.4;
+}
+
+.intro-difficulty {
+  font-size: 16px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: rgba(255,255,255,0.05);
+  padding: 8px 16px;
+  border-radius: 100px;
+  border: 1px solid var(--line);
+}
+
+/* ── Game Board ─────────────────────────────────────────── */
+.memory-board-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  width: 100%;
+}
+
+.memory-board {
+  display: grid;
+  /* 4 columns for 8 cards (4 pairs) */
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(32px, 5vw, 64px);
+  width: 100%;
+  max-width: min(1600px, 96vw);
+  margin: 0 auto;
+}
+
+/* ── Memory Card ────────────────────────────────────────── */
+.memory-card {
+  width: 100%;
+  aspect-ratio: 1 / 1.1;
+  max-width: 340px;    /* Much bigger cards */
+  perspective: 1400px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+  min-height: 200px;   /* Huge touch target */
+  min-width: 160px;
+  margin: 0 auto;
+}
+
+.memory-card:disabled {
+  cursor: default;
+}
+
+/* Subtle lift on hover (when not disabled) */
+.memory-card:not(:disabled):hover .memory-card-inner {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 40px -10px rgba(0, 0, 0, 0.6);
+}
+
+.memory-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  /* Adjust duration to be snappy but beautiful: 400ms */
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
+  transform: rotateY(0deg);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.memory-card--flipped .memory-card-inner {
+  transform: rotateY(180deg) scale(1.05); /* Slight scale up on flip */
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+}
+
+/* Wrong Match Shake Animation */
+@keyframes wrongShake {
+  0%, 100% { transform: rotateY(180deg) translateX(0); }
+  20% { transform: rotateY(180deg) translateX(-6px); }
+  40% { transform: rotateY(180deg) translateX(6px); }
+  60% { transform: rotateY(180deg) translateX(-4px); }
+  80% { transform: rotateY(180deg) translateX(4px); }
+}
+
+.memory-card--wrong .memory-card-inner {
+  animation: wrongShake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+.memory-card-back,
+.memory-card-front {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Back face (Hidden side, visible initially) */
+.memory-card-back {
+  /* Deep elegant surface */
+  background: linear-gradient(135deg, rgba(30, 35, 42, 1) 0%, rgba(15, 18, 22, 1) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transform: rotateY(0deg);
+  /* Gentle ambient glow inner shadow */
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.memory-card-back::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+.card-back-symbol {
+  width: 32px;
+  height: 32px;
+  opacity: 0.4;
+  fill: var(--bone-dim);
+  transition: opacity 0.3s;
+}
+
+.memory-card:hover .card-back-symbol {
+  opacity: 0.8;
+}
+
+/* Front face (Revealed side) */
+.memory-card-front {
+  background: linear-gradient(135deg, rgba(40, 48, 58, 1) 0%, rgba(20, 24, 30, 1) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transform: rotateY(180deg);
+  /* Inner light */
+  box-shadow: inset 0 20px 60px -20px rgba(255, 255, 255, 0.1);
+}
+
+.card-object {
+  width: 78%;      /* Even larger object inside card */
+  height: 78%;
+  position: relative;
+  transform: translateZ(50px);
+  filter: drop-shadow(0 18px 24px rgba(0,0,0,0.7));
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.memory-card--flipped .card-object {
+  transform: translateZ(50px) scale(1.12);
+}
+
+/* Matched state */
+.memory-card--matched .memory-card-front {
+  background: linear-gradient(135deg, rgba(20, 48, 30, 1) 0%, rgba(10, 24, 15, 1) 100%);
+  border-color: rgba(74, 222, 128, 0.4);
+  box-shadow: 0 0 30px rgba(74, 222, 128, 0.2), inset 0 0 40px rgba(74, 222, 128, 0.1);
+}
+
+.memory-card--matched .card-object {
+  filter: drop-shadow(0 0 20px rgba(167, 243, 208, 0.5));
+  transform: translateZ(20px) scale(1.05); /* Settle down */
+}
+
+/* Matched particle effects (using pseudo elements) */
+@keyframes particleBurst {
+  0% { opacity: 0; transform: scale(0) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.5) rotate(90deg); }
+  100% { opacity: 0; transform: scale(2) rotate(180deg); }
+}
+
+.memory-card--matched::after {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  background: radial-gradient(circle, rgba(167,243,208,0.2) 0%, transparent 60%);
+  z-index: -1;
+  animation: particleBurst 1s ease-out forwards;
+  pointer-events: none;
+}
+
+
+/* ── Board hint ─────────────────────────────────────────── */
+.memory-board-hint {
+  font-size: clamp(20px, 2vw, 24px);
+  color: var(--muted);
+  letter-spacing: .02em;
+  text-align: center;
+  font-family: 'Lexend', sans-serif;
+  margin-top: 16px;
+}
+
+/* ── Complete screen ────────────────────────────────────── */
+.game-complete {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 32px;
+  padding: clamp(32px, 6vh, 72px) 0;
+  max-width: 600px;
+}
+
+.complete-title {
+  font-family: 'Lexend', sans-serif;
+  font-size: clamp(48px, 6vw, 64px);
+  font-weight: 300;
+  color: #fde68a; /* Warm glow color */
+  text-shadow: 0 0 40px rgba(253, 230, 138, 0.4);
+  margin: 0;
+}
+
+.complete-stats {
+  font-size: 24px;
+  color: var(--bone);
+  letter-spacing: 0.05em;
+}
+
+.complete-actions {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 32px;
+}
+
+.complete-actions .void-btn {
+  font-size: 20px; /* Larger buttons for accessibility */
+  padding: 16px 32px;
+}
+
+/* ── Responsive ──────────────────────────────────── */
+@media (max-width: 1024px) {
+  .memory-board {
+    max-width: 100%;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .memory-board {
+    gap: 14px;
+    max-width: 100%;
+  }
+  .memory-card {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  /* On small screens: 2x4 grid, cards stay large */
+  .memory-board {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 380px;
+    gap: 16px;
+  }
+}

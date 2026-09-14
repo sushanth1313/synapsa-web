@@ -1,0 +1,108 @@
+.focus-page {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+  z-index: 2;
+  overflow: hidden;
+}
+
+.focus-hud {
+  position: absolute;
+  top: calc(var(--nav-h) + 20px);
+  left: 0; right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.focus-hud-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(10, 15, 20, 0.6);
+  backdrop-filter: blur(8px);
+  padding: 12px 24px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.focus-hud-stat b {
+  font-size: 24px;
+  color: var(--bone);
+  font-family: 'Space Mono', monospace;
+}
+
+.focus-hud-stat span {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+.focus-target-indicator {
+  position: absolute;
+  top: calc(var(--nav-h) + 120px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(42, 107, 87, 0.2);
+  border: 1px solid var(--color-tea-green);
+  padding: 12px 24px;
+  border-radius: 100px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--bone);
+  font-family: 'Space Mono', monospace;
+  font-size: 16px;
+  z-index: 10;
+}
+
+.focus-game-area {
+  flex: 1;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding-top: 200px;
+  padding-bottom: 100px;
+}
+
+.focus-item {
+  position: absolute;
+  font-size: 48px;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 50%;
+  backdrop-filter: blur(4px);
+}
+.focus-item:active {
+  transform: scale(0.9);
+}
+
+.focus-feedback {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 48px;
+  font-weight: bold;
+  pointer-events: none;
+  z-index: 20;
+  text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+.focus-feedback--correct {
+  color: var(--color-tea-green);
+}
+.focus-feedback--wrong {
+  color: #ef4444;
+}

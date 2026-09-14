@@ -1,0 +1,123 @@
+.onboarding-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  width: 100%;
+  flex: 1;
+  background: transparent;
+  z-index: 9999;
+  padding: 24px;
+  pointer-events: none;
+}
+
+.onboarding-page > * {
+  pointer-events: auto; /* Re-enable pointer events for content */
+}
+
+.onboarding-content {
+  max-width: 600px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 24px;
+  background: rgba(10, 15, 30, 0.65); /* Dark cosmic navy */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 48px 32px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+}
+
+.onboarding-progress {
+  font-family: 'Space Mono', monospace;
+  font-size: 14px;
+  color: var(--color-tea-green);
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+
+.onboarding-nova-intro {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.nova-dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--color-tea-green);
+  box-shadow: 0 0 16px var(--color-tea-green);
+  animation: pulse-nova 2s infinite ease-in-out;
+}
+
+.nova-text {
+  font-family: 'Space Mono', monospace;
+  font-size: 16px;
+  color: var(--bone);
+  letter-spacing: 0.2em;
+}
+
+.onboarding-title {
+  font-size: clamp(32px, 5vw, 48px);
+  color: var(--bone);
+  line-height: 1.2;
+}
+
+.onboarding-desc {
+  font-size: clamp(16px, 2vw, 20px);
+  color: var(--muted);
+  max-width: 400px;
+  line-height: 1.6;
+}
+
+.onboarding-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 400px;
+  margin-top: 16px;
+}
+
+.onboarding-option-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  color: var(--bone);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.onboarding-option-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.onboarding-option-btn.active {
+  background: rgba(42, 107, 87, 0.2);
+  border-color: var(--color-tea-green);
+  color: var(--bone);
+}
+
+.onboarding-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.onboarding-actions button:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+@keyframes pulse-nova {
+  0% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 24px var(--color-tea-green); }
+  100% { transform: scale(1); opacity: 0.8; }
+}
