@@ -16,47 +16,56 @@ import { useVoiceAmplitude, useReducedMotion } from '../hooks';
 import { fadeUp, staggerContainer, buttonHover } from '../tokens/variants';
 import './CompanionPage.css';
 
-const QUICK_MESSAGES = [
-  { id: 'hw', text: 'How are you?', icon: '😊' },
-  { id: 'game', text: 'I want to play a game', icon: '🎮' },
-  { id: 'remind', text: 'What should I do today?', icon: '📋' },
-  { id: 'calm', text: 'I feel tired', icon: '🌿' },
-  { id: 'help', text: 'I need help', icon: '🤝' },
-  { id: 'good', text: 'I feel good today!', icon: '🌟' },
+const getQuickMessages = (strings: any) => [
+  { id: 'hw', text: strings.quick_msg_hw || 'How are you?', icon: '😊' },
+  { id: 'game', text: strings.quick_msg_game || 'I want to play a game', icon: '🎮' },
+  { id: 'remind', text: strings.quick_msg_remind || 'What should I do today?', icon: '📋' },
+  { id: 'calm', text: strings.quick_msg_calm || 'I feel tired', icon: '🌿' },
+  { id: 'help', text: strings.quick_msg_help || 'I need help', icon: '🤝' },
+  { id: 'good', text: strings.quick_msg_good || 'I feel good today!', icon: '🌟' },
 ];
 
-const AI_RESPONSES: Record<string, { text: string; action?: string }> = {
-  hw: { text: "I am happy to hear from you. How can I help you today?" },
-  game: { text: "Wonderful! Let us play a memory game. It will be fun!", action: '/memory-game' },
-  remind: { text: "Today you have your morning medicine, a walk, and three glasses of water. Take your time." },
-  calm: { text: "It is okay to feel tired. Let us go to the calm space together.", action: '/calm' },
-  help: { text: "I am right here with you. You are safe. What do you need?" },
-  good: { text: "That makes me very happy! A good feeling is a gift. Shall we play a game?" },
+// Navigation hints for quick messages — used ONLY to suggest navigation after AI responds
+const QUICK_NAV_HINTS: Record<string, string> = {
+  game: '/games',
+  calm: '/calm',
 };
 
 export const CompanionPage: React.FC = () => {
   const navigate = useNavigate();
-  const { locale, aiState, setAIState, lastSpeech, setLastSpeech, currentUser } = useAppStore();
+  const { locale, aiState, setAIState, lastSpeech, setLastSpeech, currentUser, routineItems } = useAppStore();
   const strings = getStrings(locale);
   const reduced = useReducedMotion();
 
-  const [isListening, setIsListening] = useState(false);
   const [inputText, setInputText] = useState('');
+  const [isListening, setIsListening] = useState(false);
   const [messages, setMessages] = useState<Array<{ id: string; role: 'user' | 'ai'; text: string; sources?: string[] | string }>>([
     { id: 'greeting', role: 'ai', text: strings.greeting },
   ]);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
+  
+  const recognitionRef = React.useRef<any>(null);
 
-  const amplitude = useVoiceAmplitude(isListening);
+  const amplitude = useVoiceAmplitude(false);
 
   // Greet on mount
   useEffect(() => {
     setAIState('speaking');
-    VoiceService.speak(strings.greeting);
+    VoiceService.speak(strings.greeting, locale);
     setTimeout(() => setAIState('idle'), 3000);
     return () => VoiceService.stopSpeaking();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Stop recognition and speaking on locale change
+  useEffect(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.abort();
+      setIsListening(false);
+      if (aiState === 'listening') setAIState('idle');
+    }
+    VoiceService.stopSpeaking();
+  }, [locale]);
 
   const processMessage = useCallback(async (text: string, msgId?: string) => {
     if (aiState === 'thinking' || aiState === 'speaking') return;
@@ -80,38 +89,46 @@ export const CompanionPage: React.FC = () => {
     // We can't rely on `messages` immediately since it hasn't re-rendered.
     let response: { text: string; action?: string; sources?: string[] | string } | undefined;
 
-    // Check predefined actions first
-    if (msgId && AI_RESPONSES[msgId]) {
-      response = AI_RESPONSES[msgId];
-      await new Promise(r => setTimeout(r, 900));
-    } else {
-      try {
-        const userContext = currentUser ? {
-          name: currentUser.name,
-          level: currentUser.level,
-          xp: currentUser.xp,
-          streak: currentUser.currentStreak
-        } : null;
+    // Always call backend so language enforcement (CRITICAL LANGUAGE RULE) is applied
+    try {
+      const userContext = currentUser ? {
+        name: currentUser.name,
+        level: currentUser.level,
+        xp: currentUser.xp,
+        streak: currentUser.currentStreak,
+        routine: routineItems.map(r => `${r.scheduledTime}: ${r.title} (${r.completedAt ? 'Done' : 'Pending'})`).join(', ')
+      } : null;
 
-        // Since messages state might not be updated yet in this closure, we pass the prev messages + new message
-        const currentHistory = [...messages, userMsg];
-        
-        const apiRes = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: currentHistory, userContext })
-        });
-        
-        if (apiRes.ok) {
-          const data = await apiRes.json();
-          response = { text: data.text, sources: data.sources };
+      // Since messages state might not be updated yet in this closure, we pass the prev messages + new message
+      const currentHistory = [...messages, userMsg];
+      
+      const apiRes = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: currentHistory, userContext, language: locale })
+      });
+      
+      if (apiRes.ok) {
+        const data = await apiRes.json();
+        // Map backend 'response' field correctly
+        if (data.success === false) {
+           response = { text: data.error || data.response || "Server error occurred." };
         } else {
-          response = { text: "I am having trouble connecting to my servers right now." };
+           // Merge any nav hint from quick message shortcuts
+           const navAction = data.action || (msgId ? QUICK_NAV_HINTS[msgId] : undefined);
+           response = { text: data.response || data.text, sources: data.sources, action: navAction };
         }
-      } catch (e) {
-        console.error("API error:", e);
-        response = { text: "I seem to be offline. Let's just talk when I'm back." };
+      } else {
+        try {
+          const errData = await apiRes.json();
+          response = { text: errData.error || errData.response || `Error ${apiRes.status}: I am having trouble connecting to my servers.` };
+        } catch(e) {
+          response = { text: `Error ${apiRes.status}: I am having trouble connecting to my servers right now.` };
+        }
       }
+    } catch (e) {
+      console.error("API error:", e);
+      response = { text: `I seem to be offline. Error: ${e instanceof Error ? e.message : String(e)}` };
     }
 
     const aiMsg = { 
@@ -124,7 +141,7 @@ export const CompanionPage: React.FC = () => {
     setMessages(prev => [...prev, aiMsg]);
     setLastSpeech(aiMsg.text);
     setAIState('speaking');
-    VoiceService.speak(aiMsg.text);
+    VoiceService.speak(aiMsg.text, locale);
 
     if (response?.action) {
       setPendingAction(response.action);
@@ -137,32 +154,81 @@ export const CompanionPage: React.FC = () => {
     processMessage(text, msgId);
   }, [processMessage]);
 
+  // Locale is stored as 'en-IN', 'kn-IN', 'as-IN', 'bn-IN' — use directly for recognition
+  const speechLangMap: Record<string, string> = {
+    'en-IN': 'en-IN',
+    'kn-IN': 'kn-IN',
+    'as-IN': 'as-IN',
+    'bn-IN': 'bn-IN',
+  };
+  const recognitionLang = speechLangMap[locale] || 'en-IN';
+
+  // Mic label in the selected language
+  const micLabel: Record<string, string> = {
+    'en-IN': 'Speak',
+    'kn-IN': 'ಮಾತನಾಡಿ',
+    'as-IN': 'কথা কওক',
+    'bn-IN': 'বলুন',
+  };
+  const micLabelText = micLabel[locale] || 'Speak';
+
+  const toggleListening = () => {
+    if (isListening) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      setIsListening(false);
+      setAIState('idle');
+      return;
+    }
+    
+    const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Voice input is not supported in this browser. Please use Chrome or Edge.');
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    // Use the full locale code directly (kn-IN, en-IN, bn-IN, as-IN)
+    recognition.lang = recognitionLang;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognitionRef.current = recognition;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      setAIState('listening');
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setInputText(transcript);
+      processMessage(transcript);
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error('Speech recognition error', event.error);
+      if (event.error === 'not-allowed') {
+        alert('Microphone permission is required. Please allow microphone access in your browser settings.');
+      }
+      setIsListening(false);
+      setAIState('idle');
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+      if (aiState === 'listening') setAIState('idle');
+    };
+
+    recognition.start();
+  };
+
   const handleTextSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText.trim()) return;
     const text = inputText;
     setInputText('');
     processMessage(text);
-  };
-
-  const handleMicPress = async () => {
-    if (isListening) {
-      setIsListening(false);
-      setAIState('thinking');
-      await VoiceService.stopListening();
-      await new Promise(r => setTimeout(r, 1000));
-      const aiMsg = { id: Date.now() + 'ai', role: 'ai' as const, text: "I heard you. I am here to help." };
-      setMessages(prev => [...prev, aiMsg]);
-      setAIState('speaking');
-      VoiceService.speak(aiMsg.text);
-      setTimeout(() => setAIState('idle'), 3000);
-    } else {
-      setIsListening(true);
-      setAIState('listening');
-      const userMsg = { id: Date.now().toString(), role: 'user' as const, text: '[Speaking…]' };
-      setMessages(prev => [...prev, userMsg]);
-      await VoiceService.startListening();
-    }
   };
 
   return (
@@ -174,7 +240,7 @@ export const CompanionPage: React.FC = () => {
         </button>
         <div className="companion-header-center">
           <div className="dot"></div>
-          <h1 className="companion-title">NOVA: Your AI Memory Companion</h1>
+          <h1 className="companion-title">{strings.companion_title}</h1>
         </div>
         <div style={{ width: 80 }} />
       </div>
@@ -183,7 +249,7 @@ export const CompanionPage: React.FC = () => {
       <div className="companion-avatar-area">
         <div className="companion-avatar-wrapper">
           {!reduced && (
-            <VoiceWave state={aiState} amplitude={amplitude} size={280} />
+            <VoiceWave state={aiState} size={280} />
           )}
           <Avatar
             state={aiState}
@@ -205,7 +271,7 @@ export const CompanionPage: React.FC = () => {
             >
               {aiState === 'listening' ? strings.listening :
                aiState === 'thinking' ? strings.thinking :
-               aiState === 'searching' ? 'Searching the web...' :
+               aiState === 'searching' ? strings.searching_web :
                aiState === 'speaking' ? strings.speaking : ''}
             </motion.p>
           )}
@@ -244,14 +310,14 @@ export const CompanionPage: React.FC = () => {
 
       {/* Quick messages */}
       <div className="companion-quick-msg">
-        <p className="quick-msg-label">Quick messages</p>
+        <p className="quick-msg-label">{strings.quick_msg_label}</p>
         <motion.div 
           className="quick-msg-grid"
           variants={reduced ? {} : staggerContainer}
           initial="hidden"
           animate="show"
         >
-          {QUICK_MESSAGES.map(msg => (
+          {getQuickMessages(strings).map(msg => (
             <motion.button
               key={msg.id}
               id={`quick-msg-${msg.id}`}
@@ -270,13 +336,31 @@ export const CompanionPage: React.FC = () => {
         </motion.div>
       </div>
 
+      {/* ── Large Microphone Button (elderly-friendly) ── */}
+      <div className="companion-mic-area">
+        <button
+          id="nova-mic-button"
+          type="button"
+          className={`nova-mic-btn ${isListening ? 'nova-mic-btn--listening' : ''}`}
+          onClick={toggleListening}
+          disabled={aiState === 'thinking' || aiState === 'speaking'}
+          aria-label={isListening ? 'Stop listening' : 'Start voice input'}
+        >
+          <span className="nova-mic-icon">{isListening ? '⏹' : '🎤'}</span>
+          <span className="nova-mic-label">{isListening ? (strings.listening || 'Listening...') : micLabelText}</span>
+        </button>
+        {isListening && (
+          <div className="nova-mic-pulse-ring" aria-hidden="true" />
+        )}
+      </div>
+
       {/* Chat Input */}
       <div className="companion-chat-input-area">
         <form onSubmit={handleTextSubmit} className="companion-chat-form">
           <input
             type="text"
             className="companion-text-input"
-            placeholder="Type a message to NOVA..."
+            placeholder={strings.type_message}
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             disabled={aiState === 'thinking' || aiState === 'speaking'}
@@ -292,33 +376,6 @@ export const CompanionPage: React.FC = () => {
         </form>
       </div>
 
-      {/* Microphone button */}
-      <div className="companion-mic-area">
-        <motion.button
-          id="companion-mic-btn"
-          className={`companion-mic-btn ${isListening ? 'companion-mic-btn--listening' : ''}`}
-          onPointerDown={handleMicPress}
-          onPointerUp={() => { if (isListening) handleMicPress(); }}
-          onPointerLeave={() => { if (isListening) handleMicPress(); }}
-          whileHover={!reduced ? { scale: 1.05 } : {}}
-          whileTap={!reduced ? { scale: 0.95 } : {}}
-          aria-label={isListening ? 'Stop listening' : 'Hold to speak'}
-          aria-pressed={isListening}
-          style={{ userSelect: 'none' }}
-        >
-          <span className="mic-icon">{isListening ? '⬛' : '🎤'}</span>
-          <span className="mic-label">{isListening ? 'LISTENING...' : 'HOLD TO SPEAK'}</span>
-        </motion.button>
-
-        {isListening && !reduced && (
-          <motion.div
-            className="mic-pulse-ring"
-            animate={{ scale: [1, 1.3, 1], opacity: [0.6, 0.2, 0.6] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-          />
-        )}
-      </div>
-
       {/* Action prompt */}
       <AnimatePresence>
         {pendingAction && (
@@ -328,13 +385,13 @@ export const CompanionPage: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
           >
-            <p>Would you like to go there?</p>
+            <p>{strings.would_you_like_to_go}</p>
             <div className="action-prompt-btns">
               <Button variant="primary" size="sm" onClick={() => { navigate(pendingAction!); setPendingAction(null); }}>
-                Yes, take me there
+                {strings.yes_take_me_there}
               </Button>
               <Button variant="ghost" size="sm" onClick={() => setPendingAction(null)}>
-                Stay here
+                {strings.stay_here}
               </Button>
             </div>
           </motion.div>

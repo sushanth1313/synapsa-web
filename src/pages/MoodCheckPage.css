@@ -1,0 +1,136 @@
+.mood-check-page {
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
+  background: transparent;
+  color: var(--bone);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.game-header-top {
+  padding: var(--space-lg);
+  display: flex;
+  align-items: center;
+  z-index: 2;
+}
+
+.mood-canvas-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.mood-content {
+  position: relative;
+  z-index: 10;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.mood-selection-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+.mood-title {
+  font-family: var(--font-serif);
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.mood-subtitle {
+  font-family: var(--font-sans);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.25rem;
+  margin-bottom: 3rem;
+}
+
+.mood-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  max-width: 800px;
+  width: 100%;
+}
+
+.mood-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  border-radius: 24px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--bone);
+}
+
+.mood-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--mood-color, rgba(255, 255, 255, 0.3));
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+}
+
+.mood-card.selected {
+  background: var(--mood-color);
+  border-color: var(--mood-color);
+  transform: scale(1.05);
+}
+
+.mood-emoji {
+  font-size: 3rem;
+}
+
+.mood-label {
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.mood-success {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.success-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.mood-success h2 {
+  font-family: var(--font-serif);
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.mood-success p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.2rem;
+}
+
+@media (max-width: 768px) {
+  .mood-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .mood-title {
+    font-size: 2rem;
+  }
+}

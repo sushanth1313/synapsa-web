@@ -1,0 +1,155 @@
+/* ============================================================= find-change */
+.find-change-page {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 2;
+  padding: calc(var(--nav-h) + 20px) var(--pad) 120px;
+}
+
+.fc-scene-container {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  aspect-ratio: 16/9;
+  background: rgba(10, 15, 20, 0.4);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 32px;
+  margin: 0 auto 48px;
+  overflow: hidden;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: inset 0 0 100px rgba(0,0,0,0.5);
+}
+
+.fc-wall {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 60%;
+  background: linear-gradient(to bottom, #1E293B, #0F172A);
+}
+.fc-floor {
+  position: absolute;
+  bottom: 0; left: 0; width: 100%; height: 40%;
+  background: #0B0F19;
+  border-top: 2px solid rgba(255,255,255,0.05);
+  perspective: 1000px;
+}
+.fc-floor::after {
+  content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: repeating-linear-gradient(90deg, transparent, transparent 10%, rgba(255,255,255,0.02) 10%, rgba(255,255,255,0.02) 11%);
+  transform: rotateX(70deg);
+  transform-origin: top;
+}
+
+/* Objects */
+.fc-object {
+  position: absolute;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Game mode: user can only click when in 'guessing' state */
+.fc-scene-container.guessing .fc-object:hover {
+  filter: drop-shadow(0 0 12px rgba(255,255,255,0.4));
+  transform: scale(1.05);
+}
+
+.fc-window {
+  top: 10%; left: 20%; width: 20%; height: 40%;
+  border: 4px solid #334155;
+  background: #38BDF8; /* Day sky */
+  border-radius: 8px;
+  overflow: hidden;
+}
+.fc-window::after {
+  content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 4px; background: #334155;
+}
+.fc-window::before {
+  content: ''; position: absolute; top: 0; left: 50%; width: 4px; height: 100%; background: #334155;
+}
+.fc-window.variant-B { background: #0F172A; } /* Night */
+
+.fc-painting {
+  top: 15%; right: 20%; width: 15%; height: 30%;
+  border: 6px solid #B45309;
+  background: #FEF3C7;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 4px;
+}
+.fc-painting-art {
+  width: 50%; height: 50%;
+  background: #F43F5E;
+  border-radius: 50%;
+}
+.fc-painting.variant-B .fc-painting-art { border-radius: 4px; background: #10B981; }
+
+.fc-plant {
+  bottom: 20%; left: 10%; width: 15%; height: 40%;
+  display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+}
+.fc-plant-leaves {
+  width: 100%; height: 70%;
+  background: #10B981;
+  border-radius: 50% 50% 10% 10%;
+  margin-bottom: -10%;
+  z-index: 2;
+}
+.fc-plant-pot {
+  width: 60%; height: 30%;
+  background: #B45309;
+  border-radius: 4px 4px 16px 16px;
+}
+.fc-plant.variant-B .fc-plant-leaves { background: #EF4444; }
+
+.fc-lamp {
+  bottom: 20%; right: 15%; width: 10%; height: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+}
+.fc-lamp-shade {
+  width: 100%; height: 30%;
+  background: #FCD34D;
+  border-radius: 16px 16px 0 0;
+  z-index: 2;
+  box-shadow: 0 10px 30px rgba(252, 211, 77, 0.5);
+}
+.fc-lamp-stand {
+  width: 10%; height: 60%;
+  background: #94A3B8;
+}
+.fc-lamp-base {
+  width: 60%; height: 10%;
+  background: #64748B;
+  border-radius: 4px;
+}
+.fc-lamp.variant-B .fc-lamp-shade { background: #475569; box-shadow: none; }
+
+.fc-rug {
+  bottom: 5%; left: 50%; transform: translateX(-50%) rotateX(60deg); width: 40%; height: 20%;
+  background: #8B5CF6;
+  border-radius: 20px;
+}
+.fc-rug.variant-B { background: #F59E0B; }
+
+/* Feedback */
+.fc-feedback-overlay {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 10;
+}
+.fc-feedback-icon {
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 64px;
+  backdrop-filter: blur(8px);
+}
+.fc-feedback-icon.correct { background: rgba(16, 185, 129, 0.2); border: 2px solid #10B981; color: #10B981; }
+.fc-feedback-icon.wrong { background: rgba(239, 68, 68, 0.2); border: 2px solid #EF4444; color: #EF4444; }

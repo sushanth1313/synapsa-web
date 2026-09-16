@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '../store';
 import { useReducedMotion } from '../hooks';
-import { fadeUp, scaleIn } from '../tokens/variants';
 import { GameResult } from '../components/game/GameResult';
 import { GameIntro } from '../components/game/GameIntro';
+import { DatabaseService } from '../services/DatabaseService';
 import './ReactionRushPage.css';
 
 type Phase = 'intro' | 'waiting' | 'ready' | 'early' | 'complete';
@@ -19,37 +19,39 @@ const DIFFICULTY_CONFIG: Record<Difficulty, { rounds: number }> = {
 
 export const ReactionRushPage: React.FC = () => {
   const navigate = useNavigate();
-  const { incrementScore, incrementGamesPlayed } = useAppStore();
+  const { currentUser, incrementScore, incrementGamesPlayed, completeGameActivity } = useAppStore();
   const reduced = useReducedMotion();
 
   const [phase, setPhase] = useState<Phase>('intro');
-  const [difficulty, setDifficulty] = useState<Difficulty>('easy');
+  const [difficulty, setDifficulty] = useState<number>(1);
   const [round, setRound] = useState(1);
   const [reactionTimes, setReactionTimes] = useState<number[]>([]);
   
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startTimeRef = useRef<number>(0);
 
-  const totalRounds = DIFFICULTY_CONFIG[difficulty].rounds;
+  React.useEffect(() => {
+    const diff = DatabaseService.getDifficulty(currentUser?.id || 'demo', 'ATTENTION');
+    setDifficulty(diff);
+  }, [currentUser]);
+
+  const totalRounds = difficulty <= 2 ? 5 : difficulty === 3 ? 8 : 12;
 
   const startWaiting = useCallback(() => {
     setPhase('waiting');
     
-    // Random wait between 2s and 5s
-    const waitTime = Math.random() * 3000 + 2000;
+    // Adaptive: Higher difficulty means shorter or more unpredictable wait time
+    const minWait = difficulty >= 4 ? 1000 : 2000;
+    const maxWait = difficulty >= 4 ? 2000 : 3000;
+    const waitTime = Math.random() * maxWait + minWait;
     
     timerRef.current = setTimeout(() => {
       setPhase('ready');
       startTimeRef.current = performance.now();
     }, waitTime);
-  }, []);
+  }, [difficulty]);
 
-  const handleStart = (diffLevel: number) => {
-    let diffStr: Difficulty = 'easy';
-    if (diffLevel === 3) diffStr = 'medium';
-    if (diffLevel === 5) diffStr = 'hard';
-
-    setDifficulty(diffStr);
+  const handleStart = () => {
     setRound(1);
     setReactionTimes([]);
     startWaiting();
@@ -77,14 +79,20 @@ export const ReactionRushPage: React.FC = () => {
         setRound(r => r + 1);
         startWaiting();
       } else {
+        const accuracy = rt === 0 ? 0 : Math.max(0, Math.min(100, Math.round(100 - ((rt - 400) / 6))));
+        DatabaseService.updateDifficulty(currentUser?.id || 'demo', 'ATTENTION', accuracy, rt);
+        
         incrementGamesPlayed();
+        completeGameActivity('ATTENTION', 15, accuracy, Math.round(rt / 1000), difficulty);
         setPhase('complete');
       }
     }
   };
 
   const handlePlayAgain = () => {
-    handleStart(difficulty === 'easy' ? 1 : difficulty === 'medium' ? 3 : 5);
+    const newDiff = DatabaseService.getDifficulty(currentUser?.id || 'demo', 'ATTENTION');
+    setDifficulty(newDiff);
+    handleStart();
   };
 
   // Calculate final score
@@ -141,6 +149,10 @@ export const ReactionRushPage: React.FC = () => {
               <div className="reaction-hud-stat">
                 <b>{round} / {totalRounds}</b>
                 <span>Round</span>
+              </div>
+              <div className="reaction-hud-stat">
+                <b>Lvl {difficulty}</b>
+                <span>Difficulty</span>
               </div>
               <div className="reaction-hud-stat">
                 <b>{reactionTimes.length > 0 ? (reactionTimes[reactionTimes.length-1]/1000).toFixed(3) + 's' : '---'}</b>

@@ -1,10 +1,11 @@
 import React, { useRef, useMemo } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Sparkles, Environment, Stars } from '@react-three/drei';
+import { useFrame, useThree } from '@react-three/fiber';
+import { Sparkles, Environment, Stars, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { useLocation } from 'react-router-dom';
 import { useReducedMotion } from '../../hooks';
 import { AICompanion3D } from '../avatar/AICompanion3D';
+import { VoiceOrb3D } from '../voice/VoiceOrb3D';
 import { useAppStore } from '../../store';
 
 // ── Cinematic Camera Rig with smooth parallax ─────────────────────
@@ -18,9 +19,9 @@ const CameraRig = ({ path }: { path: string }) => {
     let targetY = 0.5;
     let targetX = 0;
 
-    if (path.includes('memory')) {
+    if (path.includes('memory-match') || path.includes('memory-game')) {
       targetZ = 6.5; targetY = 1.2; targetX = 0;
-    } else if (path.includes('pattern')) {
+    } else if (path.includes('pattern') || path.includes('sequence')) {
       targetZ = 7; targetY = 0.8; targetX = 0;
     } else if (path.includes('calm')) {
       targetZ = 12; targetY = -0.5; targetX = 0;
@@ -28,8 +29,27 @@ const CameraRig = ({ path }: { path: string }) => {
       targetZ = 8.5; targetY = 0.5; targetX = -1.0;
     } else if (path.includes('companion')) {
       targetZ = 5.5; targetY = 0.6; targetX = 0;
-    } else if (path.includes('progress')) {
+    } else if (path.includes('progress') || path.includes('dashboard')) {
       targetZ = 8; targetY = -0.2; targetX = 1.0;
+    } else if (path.includes('vault')) {
+      targetZ = 7.5; targetY = 0.3; targetX = -0.5;
+    } else if (path.includes('games')) {
+      targetZ = 10; targetY = 1.5; targetX = 0;
+    } else if (path.includes('object') || path.includes('find') || path.includes('odd')) {
+      targetZ = 6.0; targetY = 1.0; targetX = 0.5;
+    } else if (path.includes('category') || path.includes('visual')) {
+      targetZ = 7.5; targetY = 0.2; targetX = -0.8;
+    } else if (path.includes('number') || path.includes('word')) {
+      targetZ = 6.8; targetY = 0.5; targetX = 0.8;
+    } else if (path.includes('face') || path.includes('sound')) {
+      targetZ = 6.2; targetY = 1.5; targetX = -0.5;
+    } else if (path.includes('journey')) {
+      targetZ = 4.5; targetY = 0.0; targetX = 0;
+    } else if (path.includes('login') || path.includes('landing') || path.includes('onboarding')) {
+      targetZ = 15; targetY = 2.0; targetX = 0;
+    } else {
+      // Default / Home
+      targetZ = 9; targetY = 0.5; targetX = 0;
     }
 
     const t = state.clock.elapsedTime;
@@ -59,87 +79,10 @@ const CameraRig = ({ path }: { path: string }) => {
   return null;
 };
 
-// ── Cinematic Flora (Foreground Depth) ──────────────────────────
-const ForegroundFlora = () => {
-  const groupRef = useRef<THREE.Group>(null);
-  const leafMat = useMemo(() => new THREE.MeshPhysicalMaterial({
-    color: '#0d2b1f', // Deep dark green
-    roughness: 0.8,
-    transmission: 0.1,
-    thickness: 0.5,
-    side: THREE.DoubleSide,
-    transparent: true,
-    opacity: 0.95
-  }), []);
-
-  useFrame((state) => {
-    const t = state.clock.elapsedTime;
-    if (groupRef.current) {
-      groupRef.current.children.forEach((child, i) => {
-        child.rotation.z = Math.sin(t * 0.2 + i) * 0.03;
-        child.rotation.x = Math.cos(t * 0.15 + i) * 0.02;
-      });
-    }
-  });
-
-  return (
-    <group ref={groupRef}>
-      {/* Massive blurred foreground leaves to create immediate depth */}
-      <mesh position={[-12, 4, 7]} rotation={[0.4, 0.2, -0.6]} material={leafMat}>
-        <sphereGeometry args={[6, 16, 12]} />
-      </mesh>
-      <mesh position={[14, -2, 6]} rotation={[0.2, -0.4, 0.8]} material={leafMat}>
-        <sphereGeometry args={[5, 16, 12]} />
-      </mesh>
-      <mesh position={[10, -7, 6.5]} rotation={[0.6, -0.1, 0.4]} material={leafMat}>
-        <sphereGeometry args={[4.5, 16, 12]} />
-      </mesh>
-    </group>
-  );
-};
-
-// ── Atmospheric Background Hills ────────────────────────────────
-const BackgroundHills = () => {
-  const hillMatFar = useMemo(() => new THREE.MeshStandardMaterial({
-    color: '#020805', roughness: 1.0, fog: true
-  }), []);
-  const hillMatMid = useMemo(() => new THREE.MeshStandardMaterial({
-    color: '#041209', roughness: 0.9, fog: true
-  }), []);
-  const hillMatNear = useMemo(() => new THREE.MeshStandardMaterial({
-    color: '#0a2114', roughness: 0.8, fog: true
-  }), []);
-
-  return (
-    <group position={[0, -4, -12]}>
-      {/* Far Silhouettes */}
-      <mesh position={[-15, 2, -18]} material={hillMatFar}>
-        <sphereGeometry args={[25, 32, 16]} />
-      </mesh>
-      <mesh position={[18, 0, -20]} material={hillMatFar}>
-        <sphereGeometry args={[28, 32, 16]} />
-      </mesh>
-      
-      {/* Mid Hills */}
-      <mesh position={[-8, 1, -8]} material={hillMatMid}>
-        <sphereGeometry args={[14, 24, 12]} />
-      </mesh>
-      <mesh position={[12, 1.5, -10]} material={hillMatMid}>
-        <sphereGeometry args={[16, 24, 12]} />
-      </mesh>
-
-      {/* Near Ground */}
-      <mesh position={[0, -2, 4]} rotation={[-Math.PI / 2, 0, 0]} material={hillMatNear}>
-        <planeGeometry args={[100, 40]} />
-      </mesh>
-    </group>
-  );
-};
-
 // ── Organic Ambient Particles ───────────────────────────────────
 const CinematicMistParticles = () => {
   const pointsRef = useRef<THREE.Points>(null);
-  const count = 3000;
+  const count = 2000;
   
   const [positions, colors] = useMemo(() => {
     const pos = new Float32Array(count * 3);
@@ -178,7 +121,7 @@ const CinematicMistParticles = () => {
         <bufferAttribute attach="attributes-color" count={count} array={colors} itemSize={3} />
       </bufferGeometry>
       <pointsMaterial
-        size={0.25}
+        size={0.4}
         vertexColors
         transparent
         opacity={0.6}
@@ -186,33 +129,6 @@ const CinematicMistParticles = () => {
         depthWrite={false}
       />
     </points>
-  );
-};
-
-// ── Volumetric Light Rays Approximation ─────────────────────────
-const LightRays = () => {
-  const rayRef = useRef<THREE.Group>(null);
-  
-  useFrame((state) => {
-    if (rayRef.current) {
-      const t = state.clock.elapsedTime;
-      rayRef.current.children.forEach((child, i) => {
-        (child as THREE.Mesh).material.opacity = 0.02 + Math.sin(t * 0.2 + i) * 0.015;
-      });
-    }
-  });
-
-  return (
-    <group ref={rayRef} position={[6, 8, -8]} rotation={[0, 0, -0.5]}>
-      <mesh>
-        <cylinderGeometry args={[0.5, 12, 40, 16, 1, true]} />
-        <meshBasicMaterial color="#F59E0B" transparent opacity={0.03} side={THREE.DoubleSide} depthWrite={false} blending={THREE.AdditiveBlending} />
-      </mesh>
-      <mesh rotation={[0, 0, 0.1]}>
-        <cylinderGeometry args={[0.2, 8, 40, 16, 1, true]} />
-        <meshBasicMaterial color="#fef08a" transparent opacity={0.02} side={THREE.DoubleSide} depthWrite={false} blending={THREE.AdditiveBlending} />
-      </mesh>
-    </group>
   );
 };
 
@@ -232,64 +148,67 @@ export const GlobalEnvironment3D: React.FC = () => {
     concern:   "I'm here",
   };
 
+  const isHomeOrCompanion = location.pathname === '/' || location.pathname === '/companion';
+  const isCompanion = location.pathname === '/companion';
+
   return (
-    <div style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
-      <Canvas
-        camera={{ position: [0, 0.5, 9], fov: 75 }}
-        gl={{ alpha: false, antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.1 }}
-        dpr={[1, 2]} // High quality rendering
-        style={{ background: '#020406' }}
-      >
-        <color attach="background" args={['#020406']} />
-        
-        {/* Cinematic Fog for atmospheric depth */}
-        <fog attach="fog" args={['#020406', 8, 35]} />
-        <fogExp2 attach="fog" args={['#020406', 0.03]} />
+    <>
+      <color attach="background" args={['#020406']} />
+      
+      {/* Cinematic Fog for atmospheric depth */}
+      <fog attach="fog" args={['#020406', 8, 35]} />
+      <fogExp2 attach="fog" args={['#020406', 0.03]} />
 
-        {!reduced && <CameraRig path={location.pathname} />}
+      {!reduced && <CameraRig path={location.pathname} />}
 
-        {/* Premium Lighting Setup */}
-        <ambientLight intensity={0.4} color="#0a1a12" />
-        <directionalLight position={[15, 20, 10]} intensity={2.0} color="#F59E0B" castShadow />
-        <directionalLight position={[-15, -5, 5]} intensity={1.5} color="#2A6B57" />
-        <pointLight position={[0, 4, 8]} intensity={1.5} color="#D97706" distance={25} />
-        
-        {/* Environment map for realistic reflections on the companion */}
-        <Environment preset="night" />
-        
-        <Stars radius={50} depth={20} count={1000} factor={2} saturation={0} fade speed={1} />
+      {/* Premium Lighting Setup */}
+      <ambientLight intensity={0.4} color="#0a1a12" />
+      <directionalLight position={[15, 20, 10]} intensity={2.0} color="#F59E0B" />
+      <directionalLight position={[-15, -5, 5]} intensity={1.5} color="#2A6B57" />
+      <pointLight position={[0, 4, 8]} intensity={1.5} color="#D97706" distance={25} />
+      
+      {/* Environment map for realistic reflections */}
+      <Environment preset="night" />
+      
+      <Stars radius={50} depth={20} count={1000} factor={2} saturation={0} fade speed={1} />
 
-        {/* Layers of the World */}
-        <BackgroundHills />
-        <CinematicMistParticles />
-        {!reduced && <LightRays />}
+      {/* Atmospheric Particles */}
+      <CinematicMistParticles />
 
-        {/* The Heart of SYNAPSA */}
-        <group position={[0, -0.2, 2.5]} scale={[4.5, 4.5, 4.5]}>
-          <AICompanion3D state={aiState} />
+      {/* The Heart of SYNAPSA: The Massive Living AI Companion Orb - always present in the world */}
+      <group position={[0, -0.2, 2.5]} scale={[4.5, 4.5, 4.5]}>
+        <AICompanion3D state={aiState} />
+      </group>
+
+      {/* 
+        VoiceOrb3D moved here from VoiceWave.tsx to prevent WebGL context
+        creation bugs and requestAnimationFrame halts that occur with View/View.Port
+        in react-three-drei. This elegantly injects the orb exactly where the avatar
+        is centered in front of the camera on the Companion Page.
+      */}
+      {isCompanion && !reduced && (
+        <group position={[0, 0.6, 0.5]}>
+          <VoiceOrb3D state={aiState} />
         </group>
+      )}
 
-        {/* Framing the shot */}
-        {!reduced && <ForegroundFlora />}
+      <Sparkles count={150} scale={30} size={3} speed={0.1} opacity={0.3} color="#2A6B57" />
 
-        <Sparkles count={150} scale={30} size={3} speed={0.1} opacity={0.3} color="#2A6B57" />
-      </Canvas>
-
-      {/* Integrated Companion Label (Moved out of React Three Fiber tree to HTML) */}
-      <div style={{
-        position: 'absolute',
-        bottom: 'clamp(84px, 12vh, 140px)',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '8px',
-        pointerEvents: 'none',
-        zIndex: 5,
-        opacity: location.pathname === '/companion' || location.pathname === '/' ? 1 : 0,
-        transition: 'opacity 0.5s ease'
-      }}>
+      {/* Companion State Label when on Home or Companion */}
+      <Html
+        position={[0, -3.4, 2.5]}
+        center
+        zIndexRange={[100, 0]}
+        style={{
+          opacity: isHomeOrCompanion ? 1 : 0,
+          transition: 'opacity 0.5s ease',
+          pointerEvents: 'none',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '8px'
+        }}
+      >
         <div style={{
           fontSize: '12px',
           fontWeight: 600,
@@ -312,7 +231,7 @@ export const GlobalEnvironment3D: React.FC = () => {
         }}>
           {stateLabel[aiState] ?? 'Companion'}
         </div>
-      </div>
-    </div>
+      </Html>
+    </>
   );
 };

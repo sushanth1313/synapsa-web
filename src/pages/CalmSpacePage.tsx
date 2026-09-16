@@ -1,9 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useReducedMotion } from '../hooks';
-import { Canvas } from '@react-three/fiber';
-import { BreathingLotus3D } from '../components/3d/BreathingLotus3D';
+import { View, PerspectiveCamera } from '@react-three/drei';
 import { fadeUp } from '../tokens/variants';
 import './CalmSpacePage.css';
 
@@ -16,6 +15,7 @@ const BREATHING_STEPS = [
 export const CalmSpacePage: React.FC = () => {
   const navigate = useNavigate();
   const reduced = useReducedMotion();
+  const viewRef = useRef<HTMLDivElement>(null);
 
   const [breathStep, setBreathStep] = React.useState(0);
   const [exercising, setExercising] = React.useState(false);
@@ -36,7 +36,7 @@ export const CalmSpacePage: React.FC = () => {
     <div className="calm-page" id="calm-space-page">
       <div className="calm-header">
         <button className="game-back-btn" onClick={() => navigate('/')}>
-          ← Back
+          ← {strings.back || 'Back'}
         </button>
       </div>
 
@@ -73,15 +73,7 @@ export const CalmSpacePage: React.FC = () => {
 
         {/* Right: Massive Geometric Breathing Core */}
         <div className="calm-visual">
-          <div className="calm-visual-container glow">
-            {!reduced && (
-              <Canvas camera={{ position: [0, 0, 10], fov: 45 }} gl={{ alpha: true }}>
-                <ambientLight intensity={1.5} />
-                <pointLight position={[10, 10, 10]} intensity={2} color="#8052ff" />
-                <BreathingLotus3D phase={exercising ? BREATHING_STEPS[breathStep].label : 'idle'} />
-              </Canvas>
-            )}
-          </div>
+          <div className="calm-visual-container glow" />
         </div>
       </div>
     </div>

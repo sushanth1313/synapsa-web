@@ -150,7 +150,7 @@ export interface MemoryObject {
 const CULTURAL_OBJECTS: MemoryObject[] = [
   { id: 'jaapi', emoji: '🎋', label: 'Jaapi', culturalNote: 'Traditional Assamese hat', color: '#C8960C' },
   { id: 'pitcher', emoji: '🫙', label: 'Brass Pitcher', color: '#D97706' },
-  { id: 'teacup', emoji: '🍵', label: 'Tea Cup', color: '#1B4D3E' },
+  { id: 'teacup', emoji: '🍵', label: 'Assam Tea Cup', color: '#1B4D3E' },
   { id: 'basket', emoji: '🧺', label: 'Bamboo Basket', color: '#8B5E3C' },
   { id: 'flower', emoji: '🌸', label: 'Kopou Phool', culturalNote: 'Orchid flower', color: '#FF6B9D' },
   { id: 'fish', emoji: '🐟', label: 'Hilsa Fish', color: '#4A90D9' },
@@ -160,6 +160,10 @@ const CULTURAL_OBJECTS: MemoryObject[] = [
   { id: 'lotus', emoji: '🪷', label: 'Lotus', color: '#FF6B9D' },
   { id: 'butterfly', emoji: '🦋', label: 'Butterfly', color: '#8B5CF6' },
   { id: 'mango', emoji: '🥭', label: 'Mango', color: '#F59E0B' },
+  { id: 'bihu_dhol', emoji: '🥁', label: 'Bihu Dhol', culturalNote: 'Traditional Assamese Drum', color: '#8B5E3C' },
+  { id: 'gamosa', emoji: '🧣', label: 'Gamosa', culturalNote: 'Traditional Assamese Cloth', color: '#EF4444' },
+  { id: 'muga_silk', emoji: '🥻', label: 'Muga Silk', culturalNote: 'Golden Silk of Assam', color: '#FBBF24' },
+  { id: 'rhino', emoji: '🦏', label: 'One-Horned Rhino', culturalNote: 'Pride of Kaziranga', color: '#6B7280' },
 ];
 
 export class GameService {
@@ -270,57 +274,49 @@ export class AnalyticsService {
     };
   }
 
-  static recordGameResult(_result: GameResult): void {
-    // Mock: would push to backend
+  static recordGameResult(result: GameResult): void {
+    if (SyncService.getStatus() === 'offline') {
+      SyncService.addToQueue('RECORD_GAME', result);
+      return;
+    }
+    // Mock: push to backend
     const existing = JSON.parse(localStorage.getItem('synapsa_results') ?? '[]');
-    existing.push(_result);
-    // Keep last 100 results to avoid massive localStorage
+    existing.push(result);
     localStorage.setItem('synapsa_results', JSON.stringify(existing.slice(-100)));
   }
 
-  static recordRoutineAction(_id: string, _completed: boolean): void {
-    // Mock: would sync to backend
+  static recordRoutineAction(id: string, completed: boolean): void {
+    if (SyncService.getStatus() === 'offline') {
+      SyncService.addToQueue('ROUTINE_ACTION', { id, completed });
+      return;
+    }
+    // Mock: sync to backend
   }
 }
 
 // ── VoiceService ────────────────────────────────────────────
 
 export class VoiceService {
-  private static mediaRecorder: MediaRecorder | null = null;
-  private static chunks: Blob[] = [];
-
-  static async startListening(): Promise<void> {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      this.chunks = [];
-      this.mediaRecorder = new MediaRecorder(stream);
-      this.mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) this.chunks.push(e.data);
-      };
-      this.mediaRecorder.start();
-    } catch {
-      // Microphone not available — fall back to silent mode
-    }
-  }
-
-  static async stopListening(): Promise<Blob | null> {
-    return new Promise((resolve) => {
-      if (!this.mediaRecorder) { resolve(null); return; }
-      this.mediaRecorder.onstop = () => {
-        const blob = new Blob(this.chunks, { type: 'audio/webm' });
-        resolve(blob);
-      };
-      this.mediaRecorder.stop();
-      this.mediaRecorder.stream.getTracks().forEach(t => t.stop());
-    });
-  }
-
   static speak(text: string, lang = 'en-IN'): void {
     if (!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
+    
+    // Clean up text for better speech synthesis (remove emojis, etc)
+    const cleanText = text.replace(/[\u{1F600}-\u{1F64F}]/gu, '')
+                          .replace(/[\u{1F300}-\u{1F5FF}]/gu, '')
+                          .replace(/[\u{1F680}-\u{1F6FF}]/gu, '')
+                          .replace(/[\u{1F700}-\u{1F77F}]/gu, '')
+                          .replace(/[\u{1F780}-\u{1F7FF}]/gu, '')
+                          .replace(/[\u{1F800}-\u{1F8FF}]/gu, '')
+                          .replace(/[\u{1F900}-\u{1F9FF}]/gu, '')
+                          .replace(/[\u{1FA00}-\u{1FA6F}]/gu, '')
+                          .replace(/[\u{1FA70}-\u{1FAFF}]/gu, '')
+                          .replace(/[\u{2600}-\u{26FF}]/gu, '')
+                          .replace(/[\u{2700}-\u{27BF}]/gu, '');
+                          
+    const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.lang = lang;
-    utterance.rate = 0.85;
+    utterance.rate = 0.95;
     utterance.pitch = 1.0;
     utterance.volume = 0.9;
     window.speechSynthesis.speak(utterance);
@@ -338,12 +334,33 @@ export type SyncStatus = 'online' | 'offline' | 'syncing' | 'synced';
 export * from './AudioService';
 
 export class SyncService {
+  private static DB_NAME = 'SynapsaOfflineDB';
+  private static STORE_NAME = 'syncQueue';
+  private static DB_VERSION = 1;
+
+  private static getDB(): Promise<IDBDatabase> {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(this.DB_NAME, this.DB_VERSION);
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+      request.onupgradeneeded = (e: IDBVersionChangeEvent) => {
+        const db = (e.target as IDBOpenDBRequest).result;
+        if (!db.objectStoreNames.contains(this.STORE_NAME)) {
+          db.createObjectStore(this.STORE_NAME, { keyPath: 'id' });
+        }
+      };
+    });
+  }
+
   static getStatus(): SyncStatus {
     return navigator.onLine ? 'synced' : 'offline';
   }
 
   static onStatusChange(callback: (status: SyncStatus) => void): () => void {
-    const onOnline = () => callback('synced');
+    const onOnline = () => {
+      callback('syncing');
+      this.flushQueue().then(() => callback('synced')).catch(() => callback('offline'));
+    };
     const onOffline = () => callback('offline');
     window.addEventListener('online', onOnline);
     window.addEventListener('offline', onOffline);
@@ -351,5 +368,68 @@ export class SyncService {
       window.removeEventListener('online', onOnline);
       window.removeEventListener('offline', onOffline);
     };
+  }
+
+  static async addToQueue(action: string, payload: any) {
+    try {
+      const db = await this.getDB();
+      const tx = db.transaction(this.STORE_NAME, 'readwrite');
+      const store = tx.objectStore(this.STORE_NAME);
+      const item = { id: crypto.randomUUID(), action, payload, timestamp: Date.now() };
+      store.add(item);
+      return new Promise((resolve, reject) => {
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => reject(tx.error);
+      });
+    } catch (e) {
+      console.error('Offline storage failed', e);
+    }
+  }
+
+  static async getQueue(): Promise<any[]> {
+    try {
+      const db = await this.getDB();
+      const tx = db.transaction(this.STORE_NAME, 'readonly');
+      const store = tx.objectStore(this.STORE_NAME);
+      const request = store.getAll();
+      return new Promise((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result || []);
+        request.onerror = () => reject(request.error);
+      });
+    } catch (e) {
+      console.error('Failed to get queue', e);
+      return [];
+    }
+  }
+
+  static async flushQueue() {
+    const q = await this.getQueue();
+    if (q.length === 0) return;
+
+    console.log(`Syncing ${q.length} items to backend via IndexedDB...`);
+    // Simulated network delay
+    await new Promise(r => setTimeout(r, 1000));
+    
+    // Process items
+    for (const item of q) {
+      if (item.action === 'RECORD_GAME') {
+        const existing = JSON.parse(localStorage.getItem('synapsa_results') ?? '[]');
+        existing.push(item.payload);
+        localStorage.setItem('synapsa_results', JSON.stringify(existing.slice(-100)));
+      }
+      // other actions can be processed here
+    }
+
+    // Clear IndexedDB queue after successful sync
+    try {
+      const db = await this.getDB();
+      const tx = db.transaction(this.STORE_NAME, 'readwrite');
+      const store = tx.objectStore(this.STORE_NAME);
+      store.clear();
+    } catch (e) {
+      console.error('Failed to clear sync queue', e);
+    }
+    
+    console.log('IndexedDB Sync complete');
   }
 }

@@ -6,6 +6,8 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useReducedMotion } from '../../hooks';
+import { useAppStore } from '../../store';
+import { getStrings } from '../../i18n';
 
 const HomeIcon = () => (
   <svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor">
@@ -55,12 +57,49 @@ export const BottomNav: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const reduced = useReducedMotion();
+  const { syncStatus, locale } = useAppStore();
+  const strings = getStrings(locale);
 
   // Hide on caregiver dashboard
   if (location.pathname === '/caregiver') return null;
 
   return (
     <nav className="bottom-nav" role="navigation" aria-label="Main navigation">
+      
+      {/* Visual Sync Status Indicator */}
+      <div 
+        className="sync-status-indicator" 
+        style={{
+          position: 'absolute',
+          top: '-28px',
+          right: '16px',
+          background: 'var(--bg-glass-heavy)',
+          backdropFilter: 'blur(10px)',
+          padding: '4px 10px',
+          borderRadius: '12px',
+          fontSize: '11px',
+          fontWeight: 500,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          border: '1px solid var(--border-light)',
+          color: 'var(--text-primary)',
+          opacity: syncStatus === 'synced' ? 0 : 1, // Only show if offline or syncing (can adjust)
+          transition: 'opacity 0.3s ease'
+        }}
+      >
+        <span 
+          style={{
+            width: '8px', height: '8px', borderRadius: '50%',
+            backgroundColor: syncStatus === 'online' || syncStatus === 'synced' ? '#10B981' : 
+                             syncStatus === 'syncing' ? '#F59E0B' : '#EF4444'
+          }}
+        />
+        {syncStatus === 'offline' ? strings.offline_ready || 'Offline' :
+         syncStatus === 'syncing' ? strings.syncing || 'Syncing...' :
+         strings.synced || 'Synced'}
+      </div>
+
       {NAV_ITEMS.map(item => {
         const isActive =
           item.route === '/'

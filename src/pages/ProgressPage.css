@@ -35,7 +35,7 @@
 .progress-content {
   flex: 1;
   width: 100%;
-  max-width: 900px;
+  max-width: 1000px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -96,14 +96,14 @@
   font-weight: 300;
 }
 
-/* WEEKLY CHART */
+/* CHARTS */
 .progress-chart-section {
   width: 100%;
 }
 .section-title {
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 400;
-  color: var(--bone-dim);
+  color: var(--bone);
   margin-bottom: 24px;
 }
 
@@ -111,47 +111,50 @@
   background: rgba(10, 15, 20, 0.4);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255,255,255,0.05);
-  border-radius: 20px;
-  padding: 32px 24px;
-}
-
-.chart-bars {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  height: 200px;
-  gap: 8px;
-}
-
-.chart-bar-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-}
-
-.chart-bar-bg {
-  width: clamp(24px, 4vw, 40px);
-  height: 160px;
-  background: rgba(255,255,255,0.05);
-  border-radius: 100px;
-  display: flex;
-  align-items: flex-end;
-  overflow: hidden;
+  border-radius: 24px;
+  padding: 40px;
   position: relative;
 }
 
-.chart-bar-fill {
+.svg-chart {
   width: 100%;
-  background: linear-gradient(to top, var(--color-tea-green), var(--bone));
-  border-radius: 100px;
+  height: auto;
+  overflow: visible;
 }
+.chart-line {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+}
+.chart-line.memory { stroke: #3B82F6; filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.5)); }
+.chart-line.attention { stroke: #10B981; filter: drop-shadow(0 4px 12px rgba(16, 185, 129, 0.5)); }
+.chart-line.reaction { stroke: #F59E0B; filter: drop-shadow(0 4px 12px rgba(245, 158, 11, 0.5)); }
 
-.chart-day {
+.chart-point {
+  fill: #0F172A;
+  stroke-width: 3;
+}
+.chart-point.memory { stroke: #3B82F6; }
+.chart-point.attention { stroke: #10B981; }
+.chart-point.reaction { stroke: #F59E0B; }
+
+.chart-legend {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  margin-top: 32px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 14px;
-  color: var(--muted);
-  font-weight: 600;
+  color: var(--bone-dim);
+}
+.legend-color {
+  width: 12px; height: 12px; border-radius: 50%;
 }
 
 /* AI INSIGHTS */
@@ -202,16 +205,8 @@
   border-radius: 4px;
 }
 
-.skeleton-text-sm {
-  width: 60%;
-  height: 14px;
-}
-
-.skeleton-text-lg {
-  width: 80%;
-  height: 36px;
-  margin-top: 8px;
-}
+.skeleton-text-sm { width: 60%; height: 14px; }
+.skeleton-text-lg { width: 80%; height: 36px; margin-top: 8px; }
 
 @keyframes skeleton-loading {
   0% { background-position: 200% 0; }

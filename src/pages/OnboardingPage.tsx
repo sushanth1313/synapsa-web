@@ -9,10 +9,11 @@ import './OnboardingPage.css';
 
 export const OnboardingPage: React.FC = () => {
   const navigate = useNavigate();
-  const { currentUser } = useAppStore();
+  const { currentUser, setCurrentUser } = useAppStore();
   const [step, setStep] = useState(0);
 
   // Questionnaire state
+  const [userMode, setUserMode] = useState<string>('');
   const [goal, setGoal] = useState<string>('');
   const [time, setTime] = useState<string>('');
   const [focusArea, setFocusArea] = useState<string>('');
@@ -27,25 +28,35 @@ export const OnboardingPage: React.FC = () => {
   const generateRoutines = () => {
     if (!currentUser) return;
     
+    // Save userMode
+    if (userMode) {
+      setCurrentUser({ ...currentUser, userMode: userMode as 'patient' | 'caregiver' });
+    }
+
     const routines: Omit<RoutineItem, 'id'>[] = [];
     const baseTime = 8; // 8 AM
 
     // Basic common routine
-    routines.push({ userId: currentUser.id, title: 'Morning Hydration', type: 'hydration', icon: '💧', scheduledTime: '08:00', repeat: 'daily', reminderEnabled: true });
+    routines.push({ userId: currentUser.id, title: 'Morning Medicine', type: 'medication', icon: '💊', scheduledTime: '08:00', repeat: 'daily', reminderEnabled: true });
+    routines.push({ userId: currentUser.id, title: 'Morning Hydration', type: 'hydration', icon: '💧', scheduledTime: '10:00', repeat: 'daily', reminderEnabled: true });
 
     // Focus area routine
     if (focusArea === 'Memory') {
-      routines.push({ userId: currentUser.id, title: 'Memory Challenge', type: 'activity', icon: '🧠', scheduledTime: '09:00', repeat: 'daily', reminderEnabled: true });
-    } else if (focusArea === 'Quantitative Aptitude') {
-      routines.push({ userId: currentUser.id, title: 'Quantitative Practice', type: 'activity', icon: '📊', scheduledTime: '09:00', repeat: 'daily', reminderEnabled: true });
+      routines.push({ userId: currentUser.id, title: 'Memory Activity', type: 'activity', icon: '🧠', scheduledTime: '11:00', repeat: 'daily', reminderEnabled: true });
+    } else if (focusArea === 'Daily Recall') {
+      routines.push({ userId: currentUser.id, title: 'Daily Recall', type: 'activity', icon: '🗓️', scheduledTime: '11:00', repeat: 'daily', reminderEnabled: true });
     } else {
-      routines.push({ userId: currentUser.id, title: 'Focus Challenge', type: 'activity', icon: '🎯', scheduledTime: '09:00', repeat: 'daily', reminderEnabled: true });
+      routines.push({ userId: currentUser.id, title: 'Cognitive Session', type: 'activity', icon: '🧩', scheduledTime: '11:00', repeat: 'daily', reminderEnabled: true });
     }
 
     // Goal routine
-    if (goal === 'Placement preparation') {
-      routines.push({ userId: currentUser.id, title: 'Mock Test Section', type: 'activity', icon: '📝', scheduledTime: '17:00', repeat: 'daily', reminderEnabled: true });
+    if (goal === 'Emotional Wellness' || goal === 'Stay Mentally Active') {
+      routines.push({ userId: currentUser.id, title: 'Family Call', type: 'activity', icon: '👨‍👩‍👧', scheduledTime: '18:00', repeat: 'daily', reminderEnabled: true });
+    } else {
+      routines.push({ userId: currentUser.id, title: 'Evening Walk', type: 'activity', icon: '🚶', scheduledTime: '17:00', repeat: 'daily', reminderEnabled: true });
     }
+    
+    routines.push({ userId: currentUser.id, title: 'Evening Medicine', type: 'medication', icon: '💊', scheduledTime: '20:00', repeat: 'daily', reminderEnabled: true });
 
     // Save all
     routines.forEach(r => DatabaseService.saveRoutine(r));
@@ -64,14 +75,24 @@ export const OnboardingPage: React.FC = () => {
       onAction: () => setStep(1)
     },
     {
+      id: 'mode',
+      title: "Who is using this app?",
+      desc: "Select the mode that fits your profile.",
+      options: ['Patient Mode', 'Caregiver Mode'],
+      value: userMode,
+      setValue: setUserMode,
+      actionText: "NEXT →",
+      onAction: () => setStep(2)
+    },
+    {
       id: 'goal',
-      title: "What is your goal?",
-      desc: "Select the primary reason you are here.",
-      options: ['Placement preparation', 'Competitive exams', 'Improve cognitive skills', 'General aptitude'],
+      title: "What is your primary goal?",
+      desc: "Select the main reason you are here.",
+      options: ['Remember Things', 'Improve Attention', 'Recognize Patterns', 'Remember Daily Routines', 'Stay Mentally Active', 'Emotional Wellness'],
       value: goal,
       setValue: setGoal,
       actionText: "NEXT →",
-      onAction: () => setStep(2)
+      onAction: () => setStep(3)
     },
     {
       id: 'time',
@@ -81,13 +102,13 @@ export const OnboardingPage: React.FC = () => {
       value: time,
       setValue: setTime,
       actionText: "NEXT →",
-      onAction: () => setStep(3)
+      onAction: () => setStep(4)
     },
     {
       id: 'focus',
-      title: "What do you want to improve?",
-      desc: "Pick your primary focus area.",
-      options: ['Quantitative Aptitude', 'Logical reasoning', 'Memory', 'Focus', 'Speed'],
+      title: "What do you want to focus on?",
+      desc: "Pick your primary activity area.",
+      options: ['Memory', 'Attention', 'Recognition', 'Daily Recall', 'Emotional Wellness'],
       value: focusArea,
       setValue: setFocusArea,
       actionText: "BUILD MY ROUTINE →",
@@ -96,7 +117,7 @@ export const OnboardingPage: React.FC = () => {
   ];
 
   const currentStep = steps[step];
-  const progressText = step > 0 ? `${step} / 3` : null;
+  const progressText = step > 0 ? `${step} / 4` : null;
 
   return (
     <div className="onboarding-page">

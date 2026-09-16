@@ -1,0 +1,100 @@
+/* ============================================================= sequence-order */
+.sequence-order-page {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 2;
+  padding: calc(var(--nav-h) + 20px) var(--pad) 120px;
+}
+
+.so-slots-container {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-bottom: 64px;
+  width: 100%;
+}
+
+.so-slot {
+  width: 100px;
+  height: 120px;
+  background: rgba(255,255,255,0.02);
+  border: 2px dashed rgba(255,255,255,0.2);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 64px;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+.so-slot.filled {
+  background: rgba(255,255,255,0.08);
+  border-style: solid;
+  border-color: rgba(255,255,255,0.3);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+.so-slot.filled:hover {
+  border-color: #EF4444; /* Indicate it can be removed */
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.so-pool-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.so-pool-item {
+  width: 100px;
+  height: 120px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 64px;
+  cursor: pointer;
+  transition: all 0.3s;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  user-select: none;
+}
+.so-pool-item:not(.used):hover {
+  background: rgba(255,255,255,0.15);
+  transform: translateY(-4px);
+  border-color: rgba(255,255,255,0.3);
+}
+.so-pool-item.used {
+  opacity: 0.2;
+  cursor: default;
+  transform: scale(0.9);
+}
+
+/* Validation */
+.so-slots-container.checking .so-slot {
+  border-color: #EF4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+.so-slots-container.checking .so-slot.correct {
+  border-color: #10B981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+/* Arrows */
+.so-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bone-dim);
+  font-size: 24px;
+}

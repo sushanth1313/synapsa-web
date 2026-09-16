@@ -1,8 +1,48 @@
-import type { ActivityHistory, RoutineItem } from '../types';
+import type { ActivityHistory, RoutineItem, MemoryEntry } from '../types';
 
 export class DatabaseService {
   private static ACTIVITY_KEY = 'synapsa_activity';
   private static ROUTINE_KEY = 'synapsa_routine';
+  private static DIFFICULTY_KEY = 'synapsa_difficulty';
+
+  // --- Adaptive Difficulty ---
+
+  static getDifficulty(userId: string, domain: 'MEMORY' | 'ATTENTION' | 'RECOGNITION' | 'DAILY_RECALL'): number {
+    try {
+      const data = localStorage.getItem(this.DIFFICULTY_KEY);
+      const all = data ? JSON.parse(data) : {};
+      return all[`${userId}_${domain}`] || 1; // Default level 1
+    } catch {
+      return 1;
+    }
+  }
+
+  static updateDifficulty(userId: string, domain: 'MEMORY' | 'ATTENTION' | 'RECOGNITION' | 'DAILY_RECALL', score: number, timeMs: number): number {
+    const currentLevel = this.getDifficulty(userId, domain);
+    let newLevel = currentLevel;
+    
+    // Adaptive Logic:
+    // score >= 80 -> +1
+    // score < 60 -> -1
+    // 60-79 -> maintain
+    if (score >= 80 && currentLevel < 3) {
+      newLevel = currentLevel + 1;
+    } else if (score < 60 && currentLevel > 1) {
+      newLevel = currentLevel - 1;
+    }
+
+    if (newLevel !== currentLevel) {
+      try {
+        const data = localStorage.getItem(this.DIFFICULTY_KEY);
+        const all = data ? JSON.parse(data) : {};
+        all[`${userId}_${domain}`] = newLevel;
+        localStorage.setItem(this.DIFFICULTY_KEY, JSON.stringify(all));
+      } catch (e) {
+        console.error('Error saving difficulty', e);
+      }
+    }
+    return newLevel;
+  }
 
   // --- Activity History ---
 
@@ -104,5 +144,58 @@ export class DatabaseService {
 
   private static saveAllRoutines(routines: RoutineItem[]): void {
     localStorage.setItem(this.ROUTINE_KEY, JSON.stringify(routines));
+  }
+
+  // --- Memory Vault ---
+  private static MEMORY_KEY = 'synapsa_memories';
+
+  static getMemories(userId: string): MemoryEntry[] {
+    try {
+      const data = localStorage.getItem(this.MEMORY_KEY);
+      const all: MemoryEntry[] = data ? JSON.parse(data) : [];
+      return all.filter(m => m.userId === userId).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    } catch {
+      return [];
+    }
+  }
+
+  static saveMemory(memory: Omit<MemoryEntry, 'id' | 'createdAt'>): MemoryEntry {
+    const all = this.getAllMemories();
+    const newMemory: MemoryEntry = {
+      ...memory,
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString()
+    };
+    all.push(newMemory);
+    this.saveAllMemories(all);
+    return newMemory;
+  }
+
+  static updateMemory(memoryId: string, updates: Partial<MemoryEntry>): void {
+    const all = this.getAllMemories();
+    const index = all.findIndex(m => m.id === memoryId);
+    if (index !== -1) {
+      all[index] = { ...all[index], ...updates };
+      this.saveAllMemories(all);
+    }
+  }
+
+  static deleteMemory(memoryId: string): void {
+    const all = this.getAllMemories();
+    const filtered = all.filter(m => m.id !== memoryId);
+    this.saveAllMemories(filtered);
+  }
+
+  private static getAllMemories(): MemoryEntry[] {
+    try {
+      const data = localStorage.getItem(this.MEMORY_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private static saveAllMemories(memories: MemoryEntry[]): void {
+    localStorage.setItem(this.MEMORY_KEY, JSON.stringify(memories));
   }
 }

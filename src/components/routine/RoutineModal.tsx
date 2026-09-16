@@ -26,9 +26,15 @@ export const RoutineModal: React.FC<RoutineModalProps> = ({
   const [repeat, setRepeat] = useState<RoutineItem['repeat']>(initialData?.repeat || 'daily');
   const [reminderEnabled, setReminderEnabled] = useState(initialData?.reminderEnabled ?? true);
   const [icon, setIcon] = useState(initialData?.icon || '📌');
+  
+  // Medical Appointment Specific Fields
+  const [doctorName, setDoctorName] = useState(initialData?.doctorName || '');
+  const [hospital, setHospital] = useState(initialData?.hospital || '');
+  const [notes, setNotes] = useState(initialData?.notes || '');
 
   const TYPES = [
     { value: 'medication', label: 'Medication', icon: '💊' },
+    { value: 'medical_appointment', label: 'Appointment', icon: '🏥' },
     { value: 'activity', label: 'Activity', icon: '🧠' },
     { value: 'meal', label: 'Meal', icon: '☕' },
     { value: 'hydration', label: 'Hydration', icon: '💧' },
@@ -46,6 +52,9 @@ export const RoutineModal: React.FC<RoutineModalProps> = ({
       repeat,
       reminderEnabled,
       icon,
+      doctorName: type === 'medical_appointment' ? doctorName : undefined,
+      hospital: type === 'medical_appointment' ? hospital : undefined,
+      notes: type === 'medical_appointment' ? notes : undefined,
     });
     
     // Reset form for next time if not editing
@@ -55,6 +64,9 @@ export const RoutineModal: React.FC<RoutineModalProps> = ({
       setType('activity');
       setIcon('🧠');
       setRepeat('daily');
+      setDoctorName('');
+      setHospital('');
+      setNotes('');
     }
   };
 
@@ -136,6 +148,25 @@ export const RoutineModal: React.FC<RoutineModalProps> = ({
                 ))}
               </div>
             </div>
+
+            {type === 'medical_appointment' && (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
+                <div className="form-group row">
+                  <div className="form-group-half">
+                    <label>Doctor Name</label>
+                    <input type="text" className="form-input" value={doctorName} onChange={(e) => setDoctorName(e.target.value)} placeholder="Dr. Smith" />
+                  </div>
+                  <div className="form-group-half">
+                    <label>Hospital/Clinic</label>
+                    <input type="text" className="form-input" value={hospital} onChange={(e) => setHospital(e.target.value)} placeholder="City Hospital" />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>Notes</label>
+                  <input type="text" className="form-input" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Bring medical reports" />
+                </div>
+              </motion.div>
+            )}
 
             <div className="form-group checkbox-group">
               <label className="checkbox-label">

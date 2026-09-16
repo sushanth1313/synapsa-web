@@ -10,6 +10,7 @@ import { useReducedMotion } from '../hooks';
 import { fadeUp, staggerContainer, cinematicText } from '../tokens/variants';
 import { GameResult } from '../components/game/GameResult';
 import { GameIntro } from '../components/game/GameIntro';
+import { DatabaseService } from '../services/DatabaseService';
 import './MemoryGamePage.css';
 
 // ── Premium Inline SVG Objects ─────────────────────────────
@@ -100,11 +101,31 @@ const MountainLandscape = () => (
 
 // ── Card data (4 Pairs for larger, elegant display) ────────
 
+const Dhol = () => (
+  <svg viewBox="0 0 100 100" className="card-object">
+    <rect x="20" y="30" width="60" height="40" rx="10" fill="#8B5E3C" />
+    <path d="M20 30 Q10 50 20 70 Z" fill="#D4A373" />
+    <path d="M80 30 Q90 50 80 70 Z" fill="#D4A373" />
+    <line x1="20" y1="35" x2="80" y2="65" stroke="#FBBF24" strokeWidth="2" />
+    <line x1="20" y1="65" x2="80" y2="35" stroke="#FBBF24" strokeWidth="2" />
+  </svg>
+);
+
+const Jaapi = () => (
+  <svg viewBox="0 0 100 100" className="card-object">
+    <path d="M10 70 Q50 20 90 70 Z" fill="#C8960C" />
+    <path d="M30 70 Q50 30 70 70 Z" fill="#EF4444" />
+    <circle cx="50" cy="50" r="5" fill="#FBBF24" />
+  </svg>
+);
+
 const CARD_POOL = [
   { pairId: 'kopou',   component: <KopouFlower />,       label: 'Kopou' },
   { pairId: 'teacup',  component: <AssamTeaCup />,       label: 'Tea Cup' },
   { pairId: 'lantern', component: <WarmLantern />,       label: 'Diyo' },
   { pairId: 'mountain',component: <MountainLandscape />, label: 'Mountain' },
+  { pairId: 'dhol',    component: <Dhol />,              label: 'Bihu Dhol' },
+  { pairId: 'jaapi',   component: <Jaapi />,             label: 'Jaapi' },
 ];
 
 interface CardState {
@@ -128,8 +149,9 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-function buildDeck(): CardState[] {
-  const pairs = CARD_POOL.flatMap((c) => [
+function buildDeck(pairsCount: number): CardState[] {
+  const activePool = shuffle([...CARD_POOL]).slice(0, pairsCount);
+  const pairs = activePool.flatMap((c) => [
     { id: `${c.pairId}-a`, pairId: c.pairId, component: c.component, label: c.label, isFlipped: false, isMatched: false, isWrong: false },
     { id: `${c.pairId}-b`, pairId: c.pairId, component: c.component, label: c.label, isFlipped: false, isMatched: false, isWrong: false },
   ]);
@@ -138,7 +160,7 @@ function buildDeck(): CardState[] {
 
 export const MemoryGamePage: React.FC = () => {
   const navigate = useNavigate();
-  const { incrementScore, incrementGamesPlayed, completeGameActivity } = useAppStore();
+  const { currentUser, incrementScore, incrementGamesPlayed, completeGameActivity } = useAppStore();
   const reduced = useReducedMotion();
 
   const [phase, setPhase] = useState<GamePhase>('intro');
@@ -149,20 +171,29 @@ export const MemoryGamePage: React.FC = () => {
   const [isChecking, setIsChecking] = useState(false);
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
 
-  const totalPairs = CARD_POOL.length; // 4 pairs
+  const [difficulty, setDifficulty] = useState(1);
+  const [totalPairs, setTotalPairs] = useState(4);
+  const [startTime, setStartTime] = useState(0);
+
+  useEffect(() => {
+    const diff = DatabaseService.getDifficulty(currentUser?.id || 'demo', 'MEMORY');
+    setDifficulty(diff);
+  }, [currentUser]);
 
   // ── Start game ───────────────────────────────────────────
-  const handleStart = useCallback((diffLevel: number) => {
-    // We could adjust the number of pairs based on diffLevel if we wanted.
-    // For now, we'll keep 4 pairs to match the existing assets, but could easily scale.
-    setCards(buildDeck());
+  const handleStart = useCallback(() => {
+    // Diff 1/2 = 3 pairs, Diff 3 = 4 pairs, Diff 4/5 = 6 pairs
+    const pairsCount = difficulty <= 2 ? 3 : difficulty === 3 ? 4 : 6;
+    setTotalPairs(pairsCount);
+    setCards(buildDeck(pairsCount));
     setFlippedIds([]);
     setMatchedPairs(0);
     setAttempts(0);
     setFeedback(null);
     setIsChecking(false);
     setPhase('playing');
-  }, []);
+    setStartTime(Date.now());
+  }, [difficulty]);
 
   // ── Card click ───────────────────────────────────────────
   const handleCardClick = useCallback((id: string) => {
@@ -202,8 +233,15 @@ export const MemoryGamePage: React.FC = () => {
               incrementScore(15);
 
               if (newMatched === totalPairs) {
+                const endTime = Date.now();
+                const durationMs = endTime - startTime;
+                const accuracy = Math.round((totalPairs / Math.max(attempts + 1, totalPairs)) * 100);
+                
+                // Real adaptive difficulty update
+                DatabaseService.updateDifficulty(currentUser?.id || 'demo', 'MEMORY', accuracy, durationMs);
+                
                 incrementGamesPlayed();
-                completeGameActivity('MEMORY', 15, Math.round((totalPairs / Math.max(attempts + 1, totalPairs)) * 100), 60, 1);
+                completeGameActivity('MEMORY', 15, accuracy, Math.round(durationMs / 1000), difficulty);
                 setTimeout(() => setPhase('complete'), 1500);
               }
               setIsChecking(false);
@@ -240,14 +278,22 @@ export const MemoryGamePage: React.FC = () => {
   }, [isChecking, incrementScore, incrementGamesPlayed, totalPairs]);
 
   const handlePlayAgain = () => {
-    handleStart(1); // Default back to easy for replay
+    const newDiff = DatabaseService.getDifficulty(currentUser?.id || 'demo', 'MEMORY');
+    setDifficulty(newDiff);
+    handleStart(); 
   };
 
   return (
     <div className="memory-page" id="memory-game-page">
+      
       {/* HUD Header */}
       <div className="game-header">
-        <div className="game-title-hud">Memory Match</div>
+        <div className="game-title-hud">
+          Memory Match 
+          <span style={{ fontSize: '12px', marginLeft: '10px', color: 'var(--color-tea-green)' }}>
+            [LVL {difficulty}]
+          </span>
+        </div>
         {phase === 'playing' && (
           <div className="game-stats">
             <div>

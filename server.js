@@ -22,18 +22,14 @@ if (geminiApiKey) {
   try { gemini = new GoogleGenAI({ apiKey: geminiApiKey }); } catch(e) {}
 }
 
-// System prompt injected into every request
 const SYSTEM_PROMPT = `You are NOVA, a supportive, warm, and concise AI cognitive companion for an app called Synapsa.
-CRITICAL ANSWERING RULE: You MUST answer the user's actual question directly FIRST. 
-Do NOT give generic dictionary or Wikipedia-style definitions. Do NOT explain what a concept is before answering who/what it is.
-For example:
-User: "National animal of India"
-Answer: "🐅 The national animal of India is the Bengal Tiger."
-User: "Who is the president of India?"
-Answer with the actual current President, rather than explaining what the office of President means.
-
-If the information requires web search, cite your source briefly.
-Never invent information. Keep responses concise.`;
+Your purpose is to assist elderly users with cognitive care, memory games, daily routines, reminders, and emotional wellness.
+CRITICAL RULES:
+1. ONLY answer questions related to cognitive care, the user's daily routine, games, or general emotional support.
+2. If the user asks a general knowledge question, POLITELY REDIRECT them to cognitive care tasks. Do NOT answer the general question. 
+3. NEVER give medical diagnoses or claim to be a doctor.
+4. Be very concise and warm.
+5. If the user wants to navigate somewhere in the app (e.g. go to games, show my routine, go home), end your response exactly with the tag [NAVIGATE: <path>] where path is one of: /games, /routine, /, /progress, /calm, /memory-game.`;
 
 // Intelligent Routing Helper
 function requiresWebSearch(text) {
@@ -42,9 +38,46 @@ function requiresWebSearch(text) {
   return currentKeywords.some(keyword => lower.includes(keyword));
 }
 
+// -----------------------------------------------------------------
+// MOCK DATABASE & RBAC FOR DEMONSTRATION
+// -----------------------------------------------------------------
+const MOCK_DB = {
+  patients: {
+    'patient-1': { id: 'patient-1', name: 'Ravi Sharma', level: 3, xp: 450, streak: 5 },
+    'patient-2': { id: 'patient-2', name: 'Anjali Das', level: 1, xp: 120, streak: 2 }
+  },
+  caregivers: {
+    'cg-1': {
+      id: 'cg-1', 
+      name: 'Dr. Neha', 
+      assignedPatients: ['patient-1'] // cg-1 is only allowed to access patient-1
+    }
+  }
+};
+
+app.get('/api/patient/:id', (req, res) => {
+  const { id } = req.params;
+  const caregiverId = req.headers['x-caregiver-id'];
+  
+  if (!caregiverId || !MOCK_DB.caregivers[caregiverId]) {
+    return res.status(401).json({ error: 'Unauthorized: Caregiver ID required' });
+  }
+
+  const caregiver = MOCK_DB.caregivers[caregiverId];
+  if (!caregiver.assignedPatients.includes(id)) {
+    return res.status(403).json({ error: 'Forbidden: You are not authorized to view this patient\'s data.' });
+  }
+
+  const patient = MOCK_DB.patients[id];
+  if (!patient) return res.status(404).json({ error: 'Patient not found' });
+
+  res.json({ success: true, data: patient });
+});
+// -----------------------------------------------------------------
+
 app.post('/api/chat', async (req, res) => {
   try {
-    const { messages, userContext } = req.body;
+    const { messages, userContext, language } = req.body;
     
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: 'Messages array is required' });
@@ -58,9 +91,22 @@ app.post('/api/chat', async (req, res) => {
 
     // Build context-aware prompt
     const contextPrompt = userContext 
-      ? `\n\nUser Context:\nName: ${userContext.name}\nLevel: ${userContext.level}\nXP: ${userContext.xp}\nStreak: ${userContext.streak} days.\n(Use this context naturally if relevant, don't force it).` 
+      ? `\n\nUser Context:\nName: ${userContext.name}\nLevel: ${userContext.level}\nXP: ${userContext.xp}\nStreak: ${userContext.streak} days.\nRoutine Today: ${userContext.routine || 'None'}\n(Answer routine questions using this routine context).` 
       : '';
-    const fullSystemPrompt = SYSTEM_PROMPT + contextPrompt;
+      
+    // Language enforcement
+    const langNames = {
+      'en-IN': 'English',
+      'kn-IN': 'Kannada',
+      'bn-IN': 'Bengali',
+      'as-IN': 'Assamese'
+    };
+    const targetLanguage = language ? (langNames[language] || language) : 'English';
+    const langPrompt = `\n\nCRITICAL LANGUAGE RULE: You MUST generate your response text ENTIRELY in ${targetLanguage}. Do NOT respond in English unless ${targetLanguage} is English. Any navigation tags like [NAVIGATE: /games] must still be in English exactly as specified, but the rest of the spoken text must be fully translated to ${targetLanguage}.`;
+
+    const fullSystemPrompt = SYSTEM_PROMPT + contextPrompt + langPrompt;
+
+    let geminiErrorMsg = '';
 
     try {
       if (!gemini) throw new Error("Gemini client not initialized. Check GEMINI_API_KEY.");
@@ -103,53 +149,34 @@ app.post('/api/chat', async (req, res) => {
 
     } catch (geminiError) {
       console.error('Gemini API failed:', geminiError);
+      geminiErrorMsg = geminiError.message || String(geminiError);
     }
 
     // Ultimate fallback if API failed or missing keys
     if (!responseText) {
       console.log("Gemini failed or returned empty. Applying Fallbacks...");
-      
-      // HACKATHON DEMO FALLBACKS
-      const lowerReq = latestMessage.toLowerCase();
-      if (lowerReq.includes("pm of india") || lowerReq.includes("prime minister of india") || lowerReq.includes("pm modi")) {
-        responseText = "🇮🇳 The current Prime Minister of India is Narendra Modi.\n\nHe assumed office in May 2014 and is the 14th prime minister of the country.";
-        sources = ["Government of India", "Official Records"];
-      } else if (lowerReq.includes("cm of karnataka") || lowerReq.includes("chief minister of karnataka")) {
-        responseText = "🇮🇳 Siddaramaiah is the current Chief Minister of Karnataka.\n\nHe assumed office on May 20, 2023, representing the Indian National Congress.";
-        sources = ["Government of Karnataka"];
-      } else if (lowerReq.includes("president of america") || lowerReq.includes("president of usa") || lowerReq.includes("america trump") || lowerReq.includes("president of the united states")) {
-        responseText = "🇺🇸 Donald Trump is the president-elect of the United States.\n\nHe will be inaugurated in January 2025 as the 47th president.";
-        sources = ["Official Records (USA)"];
-      } else if (lowerReq.includes("national animal of india")) {
-        responseText = "🐅 The national animal of India is the Bengal Tiger.\n\nThe Bengal Tiger represents India's rich wildlife and natural heritage.";
-        sources = ["Government of India"];
-      } else if (lowerReq.includes("president of india")) {
-        responseText = "🇮🇳 Droupadi Murmu is the current President of India.\n\nShe assumed office on July 25, 2022, and is the first person from a tribal community to hold the office.";
-        sources = ["Government of India"];
-      } else if (lowerReq.includes("capital of india")) {
-        responseText = "📍 New Delhi is the capital of India.\n\nIt is the seat of all three branches of the Government of India.";
-        sources = ["Government of India"];
-      } else if (lowerReq.includes("national bird of india")) {
-        responseText = "🦚 The Indian Peacock is the national bird of India.\n\nIt is recognized for its rich religious and legendary involvement in Indian traditions.";
-        sources = ["Government of India"];
-      } else {
-        responseText = "Sorry, I couldn't get the latest information right now. Please try again.";
-      }
+      responseText = geminiErrorMsg ? `Backend AI Error: ${geminiErrorMsg}` : "I am having some trouble right now, but I am still here. Let's do a memory exercise or check your schedule.";
     }
 
-    res.json({ text: responseText, sources });
+    let action = null;
+    const navMatch = responseText.match(/\[NAVIGATE:\s*([^\]]+)\]/i);
+    if (navMatch) {
+      action = navMatch[1].trim();
+      responseText = responseText.replace(/\[NAVIGATE:\s*([^\]]+)\]/i, '').trim();
+    }
+
+    res.json({ success: true, response: responseText, sources, action });
 
   } catch (error) {
     console.error('API Error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ success: false, error: error.message || 'Internal server error', response: "Nova is having trouble connecting right now. Please try again." });
   }
 });
 
 // Serve static files from the React app (for production deployment on Render)
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// The "catchall" handler: for any request that doesn't match an API route, send back React's index.html file.
-app.get('*', (req, res) => {
+app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 

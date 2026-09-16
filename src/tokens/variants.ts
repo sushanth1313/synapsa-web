@@ -4,19 +4,19 @@ import { motion as motionTokens } from './index';
 // ── Page & Layout ───────────────────────────────────────────
 
 export const pageVariants: Variants = {
-  initial: { opacity: 0, filter: 'blur(20px)', y: 30, scale: 0.98 },
+  initial: { opacity: 0, filter: 'blur(24px)', y: 20, scale: 0.96 },
   animate: { 
     opacity: 1, 
     filter: 'blur(0px)', 
     y: 0, 
     scale: 1,
-    transition: { duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.1 } 
+    transition: { duration: 1.2, ease: [0.16, 1, 0.3, 1] } 
   },
   exit: { 
     opacity: 0, 
-    filter: 'blur(20px)', 
-    y: -20,
-    scale: 1.02,
+    filter: 'blur(24px)', 
+    y: -10,
+    scale: 1.05,
     transition: { duration: 0.8, ease: [0.4, 0, 0.2, 1] } 
   },
 };

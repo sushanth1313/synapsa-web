@@ -102,7 +102,7 @@ app.post('/api/chat', async (req, res) => {
       console.log("Gemini failed or returned empty. Applying Fallbacks...");
       
       // HACKATHON DEMO FALLBACKS
-      const lowerReq = latestMessage.toLowerCase();
+      const lowerReq = (latestMessage || '').toLowerCase();
       if (lowerReq.includes("pm of india") || lowerReq.includes("prime minister of india") || lowerReq.includes("pm modi")) {
         responseText = "🇮🇳 The current Prime Minister of India is Narendra Modi.\n\nHe assumed office in May 2014 and is the 14th prime minister of the country.";
         sources = ["Government of India", "Official Records"];
@@ -129,11 +129,11 @@ app.post('/api/chat', async (req, res) => {
       }
     }
 
-    res.json({ text: responseText, sources });
+    res.json({ success: true, response: responseText, sources });
 
   } catch (error) {
     console.error('API Error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ success: false, error: 'Internal server error', response: "Nova is having trouble connecting right now. Please try again." });
   }
 });
 

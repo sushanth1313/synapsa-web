@@ -13,7 +13,6 @@ interface Props {
   state: AIState;
   size?: 'sm' | 'md' | 'lg';
   speech?: string;
-  amplitude?: number;
 }
 
 const stateConfig: Record<AIState, {
@@ -37,7 +36,6 @@ export const Avatar: React.FC<Props> = ({
   state,
   size = 'md',
   speech,
-  amplitude = 0,
 }) => {
   const reduced = useReducedMotion();
   const config = stateConfig[state];
@@ -47,8 +45,8 @@ export const Avatar: React.FC<Props> = ({
   const breathScale = state === 'idle' ? [1, 1.025, 1] : [1, 1.04, 1];
   const breathDuration = state === 'idle' ? 4 : 2.5;
 
-  // Ring animation scales with amplitude during listening/speaking
-  const ringScale = 1 + (state === 'listening' || state === 'speaking' ? amplitude * 0.4 : 0);
+  // Ring animation scales slightly during listening/speaking
+  const ringScale = 1 + (state === 'listening' || state === 'speaking' ? 0.2 : 0);
 
   return (
     <div
@@ -64,7 +62,7 @@ export const Avatar: React.FC<Props> = ({
             className="avatar-ring avatar-ring--outer"
             style={{ borderColor: config.ringColor }}
             animate={{
-              scale: [1, 1.12 + amplitude * 0.3, 1],
+              scale: [1, 1.15, 1],
               opacity: [config.ringOpacity * 0.5, config.ringOpacity * 0.2, config.ringOpacity * 0.5],
             }}
             transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
@@ -99,7 +97,7 @@ export const Avatar: React.FC<Props> = ({
       ) : (
         <motion.div
           className="avatar-body"
-          style={{ boxShadow: `0 0 ${32 + amplitude * 20}px ${config.glowColor}` }}
+          style={{ boxShadow: `0 0 32px ${config.glowColor}` }}
           animate={{ scale: breathScale }}
           transition={{
             duration: breathDuration,
@@ -114,7 +112,7 @@ export const Avatar: React.FC<Props> = ({
               <AvatarEye state={state} side="right" reduced={reduced} />
             </div>
             <div className="avatar-nose" />
-            <AvatarMouth state={state} amplitude={amplitude} />
+            <AvatarMouth state={state} />
           </div>
           <div
             className="avatar-glow"
@@ -210,7 +208,7 @@ const AvatarEye: React.FC<{
 
 // ── Mouth Component ──────────────────────────────────────────
 
-const AvatarMouth: React.FC<{ state: AIState; amplitude: number }> = ({ state, amplitude }) => {
+const AvatarMouth: React.FC<{ state: AIState }> = ({ state }) => {
   const isSpeaking = state === 'speaking';
   const isSuccess = state === 'success';
   const isConcern = state === 'concern';
@@ -220,9 +218,9 @@ const AvatarMouth: React.FC<{ state: AIState; amplitude: number }> = ({ state, a
       <motion.div
         className="avatar-mouth avatar-mouth--speaking"
         animate={{
-          scaleY: [1, 1 + amplitude * 1.5, 1],
+          scaleY: [1, 1.8, 1],
         }}
-        transition={{ duration: 0.12, repeat: Infinity }}
+        transition={{ duration: 0.15, repeat: Infinity }}
       />
     );
   }

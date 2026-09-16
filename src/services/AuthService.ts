@@ -53,6 +53,9 @@ export class AuthService {
       longestStreak: 0,
       lastActiveDate: null,
       achievements: [],
+      userMode: 'patient', // Default, will be set during onboarding
+      assignedPatients: [],
+      caregiverPin: '1234', // Default for mock
       preferences: {
         theme: 'dark',
         notifications: true,
@@ -87,5 +90,37 @@ export class AuthService {
     }
     
     return updatedUser;
+  }
+
+  // --- Mock RBAC & Security ---
+
+  static getAssignedPatients(caregiverId: string): User[] {
+    const users = this.getUsers();
+    const caregiver = users.find(u => u.id === caregiverId);
+    if (!caregiver || caregiver.userMode !== 'caregiver') return [];
+    
+    // For demo purposes, if no patients assigned, assign all patients to this caregiver automatically
+    const allPatients = users.filter(u => u.userMode === 'patient');
+    if (!caregiver.assignedPatients || caregiver.assignedPatients.length === 0) {
+      return allPatients; 
+    }
+    
+    return allPatients.filter(p => caregiver.assignedPatients?.includes(p.id));
+  }
+
+  static authorizePatientAccess(patientId: string): boolean {
+    const currentUser = this.getCurrentUser();
+    if (!currentUser) return false;
+    
+    // Patient can access their own data
+    if (currentUser.id === patientId) return true;
+    
+    // Caregiver/Healthcare can access if assigned (mock logic grants all for demo if assigned array is empty)
+    if (currentUser.userMode === 'caregiver' || currentUser.userMode === 'healthcare') {
+      const assigned = this.getAssignedPatients(currentUser.id);
+      return assigned.some(p => p.id === patientId);
+    }
+    
+    return false;
   }
 }

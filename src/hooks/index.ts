@@ -55,63 +55,6 @@ export function useCountdown(initialMs: number, onEnd?: () => void) {
   return { remaining, running, progress: 1 - remaining / initialMs, start, stop };
 }
 
-// ── useVoiceAmplitude ────────────────────────────────────────
-export function useVoiceAmplitude(active: boolean): number {
-  const [amplitude, setAmplitude] = useState(0);
-  const animRef = useRef<number>(0);
-  const analyzerRef = useRef<AnalyserNode | null>(null);
-  const contextRef = useRef<AudioContext | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-
-  useEffect(() => {
-    if (!active) {
-      setAmplitude(0);
-      cancelAnimationFrame(animRef.current);
-      contextRef.current?.close();
-      streamRef.current?.getTracks().forEach(t => t.stop());
-      return;
-    }
-
-    let mounted = true;
-    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-      if (!mounted) { stream.getTracks().forEach(t => t.stop()); return; }
-      streamRef.current = stream;
-      const ctx = new AudioContext();
-      contextRef.current = ctx;
-      const src = ctx.createMediaStreamSource(stream);
-      const analyzer = ctx.createAnalyser();
-      analyzer.fftSize = 256;
-      src.connect(analyzer);
-      analyzerRef.current = analyzer;
-      const data = new Uint8Array(analyzer.frequencyBinCount);
-      const tick = () => {
-        if (!mounted) return;
-        analyzer.getByteFrequencyData(data);
-        const avg = data.reduce((a, b) => a + b, 0) / data.length;
-        setAmplitude(avg / 128);
-        animRef.current = requestAnimationFrame(tick);
-      };
-      tick();
-    }).catch(() => {
-      // Simulate amplitude for demo
-      const tick = () => {
-        if (!mounted) return;
-        setAmplitude(0.3 + Math.random() * 0.4);
-        animRef.current = requestAnimationFrame(tick);
-      };
-      tick();
-    });
-
-    return () => {
-      mounted = false;
-      cancelAnimationFrame(animRef.current);
-      contextRef.current?.close();
-      streamRef.current?.getTracks().forEach(t => t.stop());
-    };
-  }, [active]);
-
-  return amplitude;
-}
 
 // ── useTimer ─────────────────────────────────────────────────
 export function useTimer() {
@@ -166,4 +109,22 @@ export function useAnimatedValue(target: number, durationMs = 1000): number {
   }, [target]);
 
   return value;
+}
+
+// ── useVoiceAmplitude ────────────────────────────────────────
+export function useVoiceAmplitude(isListening: boolean): number {
+  const [amplitude, setAmplitude] = useState(0);
+  
+  useEffect(() => {
+    if (!isListening) {
+      setAmplitude(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setAmplitude(Math.random() * 0.5 + 0.2);
+    }, 100);
+    return () => clearInterval(interval);
+  }, [isListening]);
+
+  return amplitude;
 }

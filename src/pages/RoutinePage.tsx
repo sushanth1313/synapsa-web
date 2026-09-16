@@ -13,7 +13,7 @@ import { Avatar } from '../components/avatar/Avatar';
 import { ReminderService, DatabaseService } from '../services';
 import { useReducedMotion } from '../hooks';
 import { Canvas } from '@react-three/fiber';
-import { MemoryGarden3D } from '../components/3d/MemoryGarden3D';
+
 import { staggerContainer, fadeUp, modalVariants, buttonHover } from '../tokens/variants';
 import { RoutineModal } from '../components/routine/RoutineModal';
 import './RoutinePage.css';
@@ -58,6 +58,7 @@ export const RoutinePage: React.FC = () => {
     medication: '#D97706',
     activity: '#1A365D',
     meal: '#8B5E3C',
+    medical_appointment: '#9333EA',
   };
 
   const typeBg: Record<string, string> = {
@@ -65,6 +66,7 @@ export const RoutinePage: React.FC = () => {
     medication: '#FEF3E2',
     activity: '#EEF2FF',
     meal: '#F5F0E8',
+    medical_appointment: '#FAF5FF',
   };
 
   return (
@@ -74,14 +76,14 @@ export const RoutinePage: React.FC = () => {
         <button className="game-back-btn" onClick={() => navigate('/')} aria-label="Go back">
           ← {strings.back}
         </button>
-        <h1 className="routine-title">{strings.dailyRoutine}</h1>
+        <h1 className="routine-title">{strings.daily_routine}</h1>
         <div className="routine-progress-summary">
           <ProgressRing
             value={adherence}
             size={56}
             strokeWidth={5}
             color="var(--color-tea-green)"
-            label={`${completed} of ${total} tasks done`}
+            label={`${completed} ${strings.of} ${total} ${strings.tasks_done}`}
           >
             <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-tea-green)' }}>
               {completed}/{total}
@@ -101,10 +103,10 @@ export const RoutinePage: React.FC = () => {
         <div className="routine-avatar-msg">
           <p className="routine-avatar-text">
             {completed === 0
-              ? 'Let us start your day gently.'
+              ? strings.let_us_start_day_gently
               : completed === total
-              ? `You completed everything today! Well done.`
-              : `You have ${total - completed} items remaining.`}
+              ? strings.you_completed_everything_today
+              : `You have ${total - completed} ${strings.items_remaining}`}
           </p>
         </div>
       </motion.div>
@@ -127,22 +129,6 @@ export const RoutinePage: React.FC = () => {
         <span className="routine-progress-label">{Math.round(adherence)}%</span>
       </motion.div>
 
-      {/* Visual 3D Journey */}
-      {!reduced && (
-        <motion.div 
-          className="routine-journey-container" 
-          initial={{ opacity: 0, filter: 'blur(10px)' }}
-          animate={{ opacity: 1, filter: 'blur(0px)' }}
-          transition={{ duration: 1, delay: 0.2 }}
-          style={{ height: '240px', width: '100%', marginBottom: '2rem', position: 'relative' }}
-        >
-          <Canvas camera={{ position: [0, 0, 5], fov: 60 }} gl={{ alpha: true }}>
-            <ambientLight intensity={0.8} />
-            <directionalLight position={[5, 5, 5]} intensity={1} color="#fdfbf7" />
-            <MemoryGarden3D gamesPlayed={gamesPlayed} score={totalScore} routineAdherence={adherence} />
-          </Canvas>
-        </motion.div>
-      )}
 
       {/* Routine list grouped by time of day */}
       <motion.div 
@@ -153,23 +139,24 @@ export const RoutinePage: React.FC = () => {
       >
         <div className="routine-actions-top">
           <button className="void-btn void-btn--primary" onClick={() => setIsModalOpen(true)}>
-            <span>+ Add Routine</span><i></i>
+            <span>+ {strings.add_routine}</span><i></i>
           </button>
         </div>
 
-        {['Morning', 'Afternoon', 'Evening'].map((period) => {
+        {['Morning', 'Afternoon', 'Evening'].map((periodStr) => {
+          const periodTitle = periodStr === 'Morning' ? strings.morning : periodStr === 'Afternoon' ? strings.afternoon : strings.evening;
           const itemsInPeriod = routineItems.filter(item => {
             const hour = parseInt(item.scheduledTime.split(':')[0], 10);
-            if (period === 'Morning') return hour < 12;
-            if (period === 'Afternoon') return hour >= 12 && hour < 17;
+            if (periodStr === 'Morning') return hour < 12;
+            if (periodStr === 'Afternoon') return hour >= 12 && hour < 17;
             return hour >= 17;
           });
 
           if (itemsInPeriod.length === 0) return null;
 
           return (
-            <div key={period} className="routine-period-group">
-              <h3 className="routine-period-title">{period}</h3>
+            <div key={periodStr} className="routine-period-group">
+              <h3 className="routine-period-title">{periodTitle}</h3>
               <div className="routine-list">
                 {itemsInPeriod.map((item) => {
                   const color = typeColor[item.type] ?? '#1B4D3E';
@@ -209,10 +196,10 @@ export const RoutinePage: React.FC = () => {
                           )}
                         </div>
                         <span className="routine-card-time" style={{ textTransform: 'capitalize' }}>
-                          {item.scheduledTime} • {item.type}
+                          {item.scheduledTime} • {strings[item.type as keyof typeof strings] || item.type}
                         </span>
                         <span className={`routine-card-status ${item.completedAt ? 'routine-card-status--done' : ''}`}>
-                          {item.completedAt ? '✓ Completed' : 'Pending'}
+                          {item.completedAt ? strings.completed : strings.pending}
                         </span>
                       </div>
 
@@ -260,8 +247,8 @@ export const RoutinePage: React.FC = () => {
           >
             <span className="routine-complete-icon">🌟</span>
             <div>
-              <p className="routine-complete-title">Excellent day!</p>
-              <p className="routine-complete-sub">You completed all your activities. Well done.</p>
+              <p className="routine-complete-title">{strings.excellent_day}</p>
+              <p className="routine-complete-sub">{strings.completed_all_activities}</p>
             </div>
           </motion.div>
         )}
@@ -282,7 +269,7 @@ export const RoutinePage: React.FC = () => {
             >
               <p className="confirm-title">
                 {routineItems.find(r => r.id === confirming)?.icon || '📌'}{' '}
-                Did you complete this?
+                {strings.did_you_complete}
               </p>
               <p className="confirm-sub">
                 {routineItems.find(r => r.id === confirming)?.title}
@@ -294,7 +281,7 @@ export const RoutinePage: React.FC = () => {
                   whileHover={reduced ? {} : buttonHover.hover}
                   whileTap={reduced ? {} : buttonHover.tap}
                 >
-                  ✓ Yes, done!
+                  {strings.yes_done}
                 </motion.button>
                 <motion.button 
                   className="confirm-btn confirm-btn--no" 
@@ -302,7 +289,7 @@ export const RoutinePage: React.FC = () => {
                   whileHover={reduced ? {} : buttonHover.hover}
                   whileTap={reduced ? {} : buttonHover.tap}
                 >
-                  Not yet
+                  {strings.not_yet}
                 </motion.button>
               </div>
             </motion.div>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAppStore } from '../store';
-import { getStrings, getGreeting } from '../i18n';
+import { getStrings } from '../i18n';
 import { AIService, VoiceService, DatabaseService } from '../services';
 import { useReducedMotion } from '../hooks';
 import { cinematicText, staggerContainer } from '../tokens/variants';
@@ -35,8 +35,8 @@ export const HomePage: React.FC = () => {
       setAIState('thinking');
       await new Promise(r => setTimeout(r, 800));
       const greetText = activities.length === 0
-        ? `Welcome to Synapsa, ${userName}. Here's your recommended starting point.`
-        : `Hey ${userName}, how is your focus today?`;
+        ? `Welcome to Synapsa, ${userName}. Let's keep your mind active today.`
+        : `Hello ${userName}, ready for your cognitive exercises today?`;
       setLastSpeech(greetText);
       setAIState('speaking');
       VoiceService.speak(greetText);
@@ -88,16 +88,19 @@ export const HomePage: React.FC = () => {
         animate="show"
       >
         {/* 1. GREETING */}
-        <motion.div className="home-greeting" variants={reduced ? {} : cinematicText}>
+        <motion.div className="home-greeting" variants={reduced ? {} : cinematicText} style={{ position: 'relative' }}>
+          <div style={{ position: 'absolute', top: 0, right: 0, display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--color-tea-green)', background: 'rgba(21, 60, 45, 0.3)', padding: '4px 10px', borderRadius: '20px', border: '1px solid rgba(21, 60, 45, 0.6)' }}>
+            <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-tea-green)' }}></span> {strings.offline_ready}
+          </div>
           <h1>{timeGreeting}, {userName} 👋</h1>
-          <p>Ready for today's journey?</p>
-          <span className="home-greeting-sub">Your AI companion for cognitive focus and routines.</span>
+          <p>Ready for today's activities?</p>
+          <span className="home-greeting-sub">Your AI companion for cognitive care and daily routines.</span>
         </motion.div>
 
         {/* 2. TODAY'S FOCUS (Progress Bar Layout) */}
         <motion.div className="home-focus-panel" variants={reduced ? {} : cinematicText}>
           <div className="focus-header">
-            <h3>Today's Focus</h3>
+            <h3>{strings.todays_focus}</h3>
             <span>{routineProgress}% Completed</span>
           </div>
           <div className="focus-progress-track">
@@ -123,15 +126,19 @@ export const HomePage: React.FC = () => {
           </div>
           <p className="ai-block-msg">
             {emptyState 
-              ? "\"Welcome to Synapsa. Here's your recommended starting point.\""
-              : "\"Based on your recent activity, I've prepared a short focus challenge for you.\""}
+              ? `"Welcome to Synapsa. I'm here to help you stay mentally active and remember your daily routines."`
+              : `"Based on your recent activity, I've prepared a personalized cognitive session for you."`}
           </p>
+          <div style={{ display: 'flex', gap: '16px', marginBottom: '20px', color: 'var(--muted)', fontSize: '14px', alignItems: 'center' }}>
+             <span style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>🔊 Listen</span>
+             <span style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>🎤 Speak</span>
+          </div>
           <div className="ai-block-actions">
             <button className="void-btn void-btn--primary" onClick={() => navigate('/focus-flow')}>
-              <span>Start Recommended Activity</span><i></i>
+              <span>{strings.start_activity}</span><i></i>
             </button>
             <button className="void-btn void-btn--secondary" onClick={() => navigate('/companion')}>
-              <span>Talk to NOVA</span><i></i>
+              <span>{strings.talk_to_nova}</span><i></i>
             </button>
           </div>
         </motion.div>
@@ -139,7 +146,7 @@ export const HomePage: React.FC = () => {
         {/* 5. TODAY'S ROUTINE */}
         <motion.div className="home-routine-block" variants={reduced ? {} : cinematicText}>
           <div className="home-section-header">
-            <h3>Today's Routine</h3>
+            <h3>{strings.routine}</h3>
             <button className="text-link" onClick={() => navigate('/routine')}>View Routine →</button>
           </div>
           <div className="home-routine-list">
@@ -166,7 +173,7 @@ export const HomePage: React.FC = () => {
         {currentUser && (currentUser.achievements || []).length > 0 && (
           <motion.div className="home-routine-block" variants={reduced ? {} : cinematicText} style={{ marginTop: '32px' }}>
             <div className="home-section-header">
-              <h3>Recent Achievement</h3>
+              <h3>{strings.recent_achievement}</h3>
               <button className="text-link" onClick={() => navigate('/progress')}>View All →</button>
             </div>
             <div className="home-routine-list">

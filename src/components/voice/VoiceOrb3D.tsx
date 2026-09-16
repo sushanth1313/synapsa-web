@@ -11,20 +11,23 @@ import type { AIState } from '../../services';
 
 interface Props {
   state: AIState;
-  amplitude?: number;
 }
 
-export const VoiceOrb3D: React.FC<Props> = ({ state, amplitude = 0 }) => {
+export const VoiceOrb3D: React.FC<Props> = ({ state }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<any>(null);
 
   const isActive = state === 'listening' || state === 'speaking';
   const color = state === 'listening' ? '#D97706' : '#2A6B57';
-  const targetDistort = isActive ? 0.4 + amplitude * 1.5 : 0.2;
-  const targetSpeed = isActive ? 2 + amplitude * 4 : 1;
-  const targetScale = isActive ? 1 + amplitude * 0.4 : 0.9;
 
-  useFrame((_, delta) => {
+  useFrame(({ clock }, delta) => {
+    const t = clock.elapsedTime;
+    const simAmp = isActive ? (Math.sin(t * 10) * 0.5 + 0.5) : 0;
+    
+    const targetDistort = isActive ? 0.4 + simAmp * 1.2 : 0.2;
+    const targetSpeed = isActive ? 2 + simAmp * 3 : 1;
+    const targetScale = isActive ? 1 + simAmp * 0.3 : 0.9;
+
     if (meshRef.current) {
       meshRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), delta * 5);
       meshRef.current.rotation.y += delta * 0.5;
@@ -57,8 +60,8 @@ export const VoiceOrb3D: React.FC<Props> = ({ state, amplitude = 0 }) => {
       <Sphere args={[2.2, 32, 32]}>
         <MeshDistortMaterial
           color={color}
-          distort={targetDistort * 1.2}
-          speed={targetSpeed * 1.2}
+          distort={0.5}
+          speed={3}
           transparent
           opacity={0.2}
           wireframe

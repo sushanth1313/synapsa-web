@@ -4,12 +4,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useReducedMotion } from '../hooks';
 import { useAppStore } from '../store';
 import { fadeUp, staggerContainer } from '../tokens/variants';
+import { getStrings } from '../i18n';
 import './SettingsPage.css';
 
 export const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const reduced = useReducedMotion();
-  const { currentUser, logout, showToast } = useAppStore();
+  const { currentUser, logout, showToast, locale } = useAppStore();
+  const strings = getStrings(locale);
   
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
@@ -32,7 +34,7 @@ export const SettingsPage: React.FC = () => {
     <div className="settings-page">
       <div className="settings-header">
         <button className="game-back-btn" onClick={() => navigate(-1)} aria-label="Go back">
-          ← Back
+          ← {strings.back || 'Back'}
         </button>
         <div className="settings-header-eyebrow">
           <div className="dot"></div>

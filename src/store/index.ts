@@ -5,8 +5,8 @@
 import { create } from 'zustand';
 import type { Locale } from '../i18n';
 import type { AIState, SyncStatus, CaregiverData } from '../services';
-import { AnalyticsService, SyncService, AuthService, DatabaseService, GamificationService } from '../services';
-import type { User, RoutineItem } from '../types';
+import { AnalyticsService, SyncService, AuthService, DatabaseService, GamificationService, VoiceService } from '../services';
+import type { User, RoutineItem, MemoryEntry } from '../types';
 
 interface AppState {
   // Auth
@@ -41,6 +41,13 @@ interface AppState {
   caregiverData: CaregiverData;
   refreshCaregiverData: () => void;
 
+  // Vault
+  memories: MemoryEntry[];
+  fetchMemories: () => void;
+  addMemory: (memory: Omit<MemoryEntry, 'id' | 'createdAt'>) => void;
+  toggleMemoryFavorite: (id: string, currentStatus: boolean) => void;
+  deleteMemory: (id: string) => void;
+
   // Sync
   syncStatus: SyncStatus;
   setSyncStatus: (status: SyncStatus) => void;
@@ -69,8 +76,12 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   // Language
-  locale: 'en',
-  setLocale: (locale) => set({ locale }),
+  locale: (localStorage.getItem('synapsa_locale') as Locale) || 'en-IN',
+  setLocale: (locale) => {
+    localStorage.setItem('synapsa_locale', locale);
+    VoiceService.stopSpeaking();
+    set({ locale });
+  },
 
   // AI Companion
   aiState: 'idle',
@@ -146,6 +157,27 @@ export const useAppStore = create<AppState>((set, get) => ({
   // Caregiver
   caregiverData: AnalyticsService.getMockCaregiverData(),
   refreshCaregiverData: () => set({ caregiverData: AnalyticsService.getMockCaregiverData() }),
+
+  // Vault
+  memories: AuthService.getCurrentUser() ? DatabaseService.getMemories(AuthService.getCurrentUser()!.id) : [],
+  fetchMemories: () => {
+    const user = get().currentUser;
+    if (user) {
+      set({ memories: DatabaseService.getMemories(user.id) });
+    }
+  },
+  addMemory: (memory) => {
+    DatabaseService.saveMemory(memory);
+    get().fetchMemories();
+  },
+  toggleMemoryFavorite: (id, currentStatus) => {
+    DatabaseService.updateMemory(id, { isFavorite: !currentStatus });
+    get().fetchMemories();
+  },
+  deleteMemory: (id) => {
+    DatabaseService.deleteMemory(id);
+    get().fetchMemories();
+  },
 
   // Sync
   syncStatus: SyncService.getStatus(),
