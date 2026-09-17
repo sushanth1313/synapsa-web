@@ -116,8 +116,12 @@ export const PatternMemoryPage: React.FC = () => {
     }
   };
 
+  const hasCompleted = useRef(false);
+
   const nextLevel = () => {
     if (level === 3) {
+      if (hasCompleted.current) return;
+      hasCompleted.current = true;
       completeGameActivity('PATTERN_MEMORY', score, 100, 180, level);
       navigate('/games');
     } else {
@@ -177,7 +181,7 @@ export const PatternMemoryPage: React.FC = () => {
                   <div 
                     key={i} 
                     className={`pm-tile ${isSelected ? 'selected' : ''} ${fb || ''}`} 
-                    onClick={() => handleTileClick(i)}
+                    onClick={(e) => { e.stopPropagation(); handleTileClick(i); }}
                   />
                 );
               })}

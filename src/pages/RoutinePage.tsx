@@ -102,7 +102,9 @@ export const RoutinePage: React.FC = () => {
         <Avatar state={aiState} size="sm" />
         <div className="routine-avatar-msg">
           <p className="routine-avatar-text">
-            {completed === 0
+            {total === 0
+              ? "You have no routines scheduled for today."
+              : completed === 0
               ? strings.let_us_start_day_gently
               : completed === total
               ? strings.you_completed_everything_today
@@ -237,7 +239,7 @@ export const RoutinePage: React.FC = () => {
 
       {/* Completion message */}
       <AnimatePresence>
-        {completed === total && (
+        {total > 0 && completed === total && (
           <motion.div
             className="routine-complete-banner"
             variants={fadeUp}

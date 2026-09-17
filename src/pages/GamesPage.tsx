@@ -138,7 +138,11 @@ export const GamesPage: React.FC = () => {
             
             <button
               className="game-play-btn"
-              onClick={(e) => { e.stopPropagation(); navigate(game.route); }}
+              onClick={(e) => { 
+                e.preventDefault();
+                e.stopPropagation(); 
+                navigate(game.route); 
+              }}
               aria-label={`Play ${game.title}`}
             >
               <span>[ {strings.play || 'PLAY'} ]</span>
@@ -197,7 +201,11 @@ export const GamesPage: React.FC = () => {
           <p className="featured-desc">{MEMORY_JOURNEY.description}</p>
           <button 
             className="featured-play-btn"
-            onClick={(e) => { e.stopPropagation(); navigate(MEMORY_JOURNEY.route); }}
+            onClick={(e) => { 
+              e.preventDefault();
+              e.stopPropagation(); 
+              navigate(MEMORY_JOURNEY.route); 
+            }}
           >
             Begin Journey
           </button>

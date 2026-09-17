@@ -96,8 +96,12 @@ export const CategorySortPage: React.FC = () => {
     }
   };
 
+  const hasCompleted = useRef(false);
+
   const nextLevel = () => {
     if (level === 3) {
+      if (hasCompleted.current) return;
+      hasCompleted.current = true;
       completeGameActivity('CATEGORY_SORT', score, 100, 180, level);
       navigate('/games');
     } else {
@@ -156,14 +160,14 @@ export const CategorySortPage: React.FC = () => {
             <div className="cs-buckets">
               <div 
                 className={`cs-bucket ${feedbackBucket === catA ? feedbackStatus : ''}`}
-                onClick={() => handleBucketClick(catA)}
+                onClick={(e) => { e.stopPropagation(); handleBucketClick(catA); }}
               >
                 <div className="cs-bucket-title">{catA}</div>
                 <div className="cs-bucket-desc">Tap here if it belongs to {catA}</div>
               </div>
               <div 
                 className={`cs-bucket ${feedbackBucket === catB ? feedbackStatus : ''}`}
-                onClick={() => handleBucketClick(catB)}
+                onClick={(e) => { e.stopPropagation(); handleBucketClick(catB); }}
               >
                 <div className="cs-bucket-title">{catB}</div>
                 <div className="cs-bucket-desc">Tap here if it belongs to {catB}</div>

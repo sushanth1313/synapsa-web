@@ -127,8 +127,12 @@ export const ObjectRecallPage: React.FC = () => {
     }
   };
 
+  const hasCompleted = useRef(false);
+
   const nextLevel = () => {
     if (level === 3) {
+      if (hasCompleted.current) return;
+      hasCompleted.current = true;
       // Game complete
       completeGameActivity('OBJECT_RECALL', score, 100, 180, level);
       navigate('/games');
@@ -229,7 +233,7 @@ export const ObjectRecallPage: React.FC = () => {
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: i * 0.05 }}
-                    onClick={() => toggleSelection(obj)}
+                    onClick={(e) => { e.stopPropagation(); toggleSelection(obj); }}
                   >
                     {obj}
                   </motion.div>

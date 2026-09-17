@@ -196,7 +196,13 @@ export const MemoryGamePage: React.FC = () => {
   }, [difficulty]);
 
   // ── Card click ───────────────────────────────────────────
-  const handleCardClick = useCallback((id: string) => {
+  const hasCompleted = useRef(false);
+
+  const handleCardClick = useCallback((id: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (isChecking) return;
 
     setCards(prev => {
@@ -233,15 +239,17 @@ export const MemoryGamePage: React.FC = () => {
               incrementScore(15);
 
               if (newMatched === totalPairs) {
-                const endTime = Date.now();
-                const durationMs = endTime - startTime;
-                const accuracy = Math.round((totalPairs / Math.max(attempts + 1, totalPairs)) * 100);
-                
-                // Real adaptive difficulty update
-                DatabaseService.updateDifficulty(currentUser?.id || 'demo', 'MEMORY', accuracy, durationMs);
-                
-                incrementGamesPlayed();
-                completeGameActivity('MEMORY', 15, accuracy, Math.round(durationMs / 1000), difficulty);
+                if (!hasCompleted.current) {
+                  hasCompleted.current = true;
+                  const endTime = Date.now();
+                  const durationMs = endTime - startTime;
+                  const accuracy = Math.round((totalPairs / Math.max(attempts + 1, totalPairs)) * 100);
+                  
+                  // Real adaptive difficulty update
+                  DatabaseService.updateDifficulty(currentUser?.id || 'demo', 'MEMORY', accuracy, durationMs);
+                  
+                  incrementGamesPlayed();
+                }
                 setTimeout(() => setPhase('complete'), 1500);
               }
               setIsChecking(false);
@@ -359,7 +367,7 @@ export const MemoryGamePage: React.FC = () => {
                     key={card.id}
                     id={`card-${card.id}`}
                     className={`memory-card ${card.isFlipped || card.isMatched ? 'memory-card--flipped' : ''} ${card.isMatched ? 'memory-card--matched' : ''} ${card.isWrong ? 'memory-card--wrong' : ''}`}
-                    onClick={() => handleCardClick(card.id)}
+                    onClick={(e) => handleCardClick(card.id, e)}
                     disabled={card.isFlipped || card.isMatched || isChecking}
                     aria-label={card.isFlipped || card.isMatched ? card.label : 'Hidden memory'}
                     aria-pressed={card.isFlipped}

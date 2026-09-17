@@ -102,8 +102,12 @@ export const SoundMemoryPage: React.FC = () => {
     }
   };
 
+  const hasCompleted = useRef(false);
+
   const nextLevel = () => {
     if (level === 3) {
+      if (hasCompleted.current) return;
+      hasCompleted.current = true;
       completeGameActivity('SOUND_MEMORY', score, 100, 180, level);
       navigate('/games');
     } else {
@@ -113,6 +117,8 @@ export const SoundMemoryPage: React.FC = () => {
   };
 
   const handleFailFinish = () => {
+    if (hasCompleted.current) return;
+    hasCompleted.current = true;
     completeGameActivity('SOUND_MEMORY', score, 100, 180, level);
     incrementScore(score); // Commit score up to this point
     navigate('/games');
@@ -158,7 +164,7 @@ export const SoundMemoryPage: React.FC = () => {
                     key={i} 
                     data-id={i}
                     className={`sm-instrument ${isActive ? 'active' : ''} ${isWrong ? 'wrong' : ''} ${gameState !== 'user_turn' ? 'disabled' : ''}`}
-                    onClick={() => handleInstrumentClick(i)}
+                    onClick={(e) => { e.stopPropagation(); handleInstrumentClick(i); }}
                   >
                     {inst}
                   </div>

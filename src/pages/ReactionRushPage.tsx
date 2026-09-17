@@ -83,10 +83,14 @@ export const ReactionRushPage: React.FC = () => {
         DatabaseService.updateDifficulty(currentUser?.id || 'demo', 'ATTENTION', accuracy, rt);
         
         incrementGamesPlayed();
-        completeGameActivity('ATTENTION', 15, accuracy, Math.round(rt / 1000), difficulty);
         setPhase('complete');
       }
     }
+  };
+
+  const handleTapWrapper = (e: React.MouseEvent | React.TouchEvent) => {
+    e.stopPropagation();
+    handleTap();
   };
 
   const handlePlayAgain = () => {
@@ -162,8 +166,8 @@ export const ReactionRushPage: React.FC = () => {
 
             <motion.div
               className={`reaction-target reaction-target--${phase}`}
-              onMouseDown={handleTap}
-              onTouchStart={handleTap}
+              onMouseDown={handleTapWrapper}
+              onTouchStart={handleTapWrapper}
               whileTap={{ scale: 0.95 }}
             >
               {phase === 'waiting' && 'Wait for green...'}

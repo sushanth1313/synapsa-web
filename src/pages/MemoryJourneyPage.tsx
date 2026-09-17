@@ -132,6 +132,8 @@ export const MemoryJourneyPage: React.FC = () => {
     setSelectedForest(newSel);
   };
 
+  const hasCompleted = useRef(false);
+
   const checkFinalRecall = () => {
     let correct = 0;
     selectedForest.forEach(objId => {
@@ -139,6 +141,8 @@ export const MemoryJourneyPage: React.FC = () => {
     });
     
     if (correct === 3) {
+      if (hasCompleted.current) return;
+      hasCompleted.current = true;
       setBgClass('end');
       setStage('finale');
       completeGameActivity('MEMORY_JOURNEY', 500, 100, 180, 1);
@@ -258,7 +262,7 @@ export const MemoryJourneyPage: React.FC = () => {
                   <div 
                     key={i} 
                     className={`mj-option ${selectedForest.has(obj.id) ? 'selected' : ''}`}
-                    onClick={() => toggleForestSelection(obj.id)}
+                    onClick={(e) => { e.stopPropagation(); toggleForestSelection(obj.id); }}
                     style={{ '--sel-color': obj.color } as any}
                   >
                     <span className="mj-option-icon">{obj.icon}</span>

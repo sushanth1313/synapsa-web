@@ -118,8 +118,12 @@ export const VisualPathPage: React.FC = () => {
     }
   };
 
+  const hasCompleted = useRef(false);
+
   const nextLevel = () => {
     if (level === 3) {
+      if (hasCompleted.current) return;
+      hasCompleted.current = true;
       completeGameActivity('VISUAL_PATH', score, 100, 180, level);
       navigate('/games');
     } else {
@@ -170,7 +174,7 @@ export const VisualPathPage: React.FC = () => {
                     <div 
                       key={i} 
                       className={`vp-node ${isActivePath ? 'active-path' : ''} ${isTraced ? 'traced' : ''} ${fb || ''} ${gameState !== 'tracing' ? 'disabled' : ''}`} 
-                      onClick={() => handleNodeClick(i)}
+                      onClick={(e) => { e.stopPropagation(); handleNodeClick(i); }}
                     />
                   );
                 })}

@@ -108,8 +108,12 @@ export const FaceMemoryPage: React.FC = () => {
     }
   };
 
+  const hasCompleted = useRef(false);
+
   const nextLevel = () => {
     if (level === 3) {
+      if (hasCompleted.current) return;
+      hasCompleted.current = true;
       completeGameActivity('FACE_MEMORY', score, 100, 180, level);
       navigate('/games');
     } else {
@@ -177,7 +181,7 @@ export const FaceMemoryPage: React.FC = () => {
                     <div 
                       className={`fm-emotion-slot ${ans ? 'filled' : ''}`}
                       style={{ borderColor: isActive ? '#3B82F6' : undefined }}
-                      onClick={() => setActiveSlotIdx(i)}
+                      onClick={(e) => { e.stopPropagation(); setActiveSlotIdx(i); }}
                     >
                       {ans ? ans : (isActive ? '?' : '')}
                     </div>
@@ -189,7 +193,7 @@ export const FaceMemoryPage: React.FC = () => {
             {activeSlotIdx !== null && (
               <motion.div className="fm-options-bar" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                 {options.map((opt, j) => (
-                  <button key={j} className="fm-option-btn" onClick={() => selectOption(opt)}>{opt}</button>
+                  <button key={j} className="fm-option-btn" onClick={(e) => { e.stopPropagation(); selectOption(opt); }}>{opt}</button>
                 ))}
               </motion.div>
             )}

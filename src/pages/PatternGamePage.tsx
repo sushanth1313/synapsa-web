@@ -172,8 +172,13 @@ export const PatternGamePage: React.FC = () => {
     startLevel(1, diffStr);
   };
 
+  const hasCompleted = useRef(false);
+
   // ── User tap ─────────────────────────────────────────────
-  const handleTap = useCallback((symbolId: string) => {
+  const handleTap = useCallback((symbolId: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
     if (phase !== 'input') return;
 
     const tapIndex = userTaps.length;
@@ -189,8 +194,10 @@ export const PatternGamePage: React.FC = () => {
       const newLives = lives - 1;
       setLives(newLives);
       if (newLives <= 0) {
-        incrementGamesPlayed();
-        completeGameActivity('PATTERN', score, 0, 120, level);
+        if (!hasCompleted.current) {
+          hasCompleted.current = true;
+          incrementGamesPlayed();
+        }
         setTimeout(() => setPhase('complete'), 2000);
       } else {
         setTimeout(() => {
@@ -212,8 +219,10 @@ export const PatternGamePage: React.FC = () => {
       setLevel(nextLevel);
 
       if (nextLevel > 8) {
-        incrementGamesPlayed();
-        completeGameActivity('PATTERN', score + points, 100, 120, nextLevel);
+        if (!hasCompleted.current) {
+          hasCompleted.current = true;
+          incrementGamesPlayed();
+        }
         setTimeout(() => setPhase('complete'), 1500);
       } else {
         setTimeout(() => {
@@ -221,7 +230,7 @@ export const PatternGamePage: React.FC = () => {
         }, 1500);
       }
     }
-  }, [phase, userTaps, sequence, lives, level, difficulty, incrementScore, incrementGamesPlayed, startLevel]);
+  }, [phase, userTaps, sequence, lives, level, difficulty, incrementScore, incrementGamesPlayed, startLevel, score]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -348,7 +357,7 @@ export const PatternGamePage: React.FC = () => {
                     key={sym.id}
                     id={`tap-${sym.id}`}
                     className="seq-tap-btn"
-                    onClick={() => handleTap(sym.id)}
+                    onClick={(e) => handleTap(sym.id, e)}
                     aria-label={`Tap ${sym.label}`}
                   >
                     <span className="seq-tap-emoji" style={{ width: '80px', height: '80px', display: 'block' }}>{sym.component}</span>

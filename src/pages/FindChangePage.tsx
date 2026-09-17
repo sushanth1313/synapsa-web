@@ -76,8 +76,12 @@ export const FindChangePage: React.FC = () => {
     }
   };
 
+  const hasCompleted = useRef(false);
+
   const nextLevel = () => {
     if (level === 3) {
+      if (hasCompleted.current) return;
+      hasCompleted.current = true;
       completeGameActivity('FIND_CHANGE', score, 100, 180, level);
       navigate('/games');
     } else {
@@ -94,19 +98,19 @@ export const FindChangePage: React.FC = () => {
       {/* Rug */}
       <div 
         className={`fc-object fc-rug ${(showVariantB && changedObjectId === 'rug') ? 'variant-B' : ''}`}
-        onClick={() => handleObjectClick('rug')}
+        onClick={(e) => { e.stopPropagation(); handleObjectClick('rug'); }}
       />
 
       {/* Window */}
       <div 
         className={`fc-object fc-window ${(showVariantB && changedObjectId === 'window') ? 'variant-B' : ''}`}
-        onClick={() => handleObjectClick('window')}
+        onClick={(e) => { e.stopPropagation(); handleObjectClick('window'); }}
       />
 
       {/* Painting */}
       <div 
         className={`fc-object fc-painting ${(showVariantB && changedObjectId === 'painting') ? 'variant-B' : ''}`}
-        onClick={() => handleObjectClick('painting')}
+        onClick={(e) => { e.stopPropagation(); handleObjectClick('painting'); }}
       >
         <div className="fc-painting-art" />
       </div>
@@ -114,7 +118,7 @@ export const FindChangePage: React.FC = () => {
       {/* Plant */}
       <div 
         className={`fc-object fc-plant ${(showVariantB && changedObjectId === 'plant') ? 'variant-B' : ''}`}
-        onClick={() => handleObjectClick('plant')}
+        onClick={(e) => { e.stopPropagation(); handleObjectClick('plant'); }}
       >
         <div className="fc-plant-leaves" />
         <div className="fc-plant-pot" />
@@ -123,7 +127,7 @@ export const FindChangePage: React.FC = () => {
       {/* Lamp */}
       <div 
         className={`fc-object fc-lamp ${(showVariantB && changedObjectId === 'lamp') ? 'variant-B' : ''}`}
-        onClick={() => handleObjectClick('lamp')}
+        onClick={(e) => { e.stopPropagation(); handleObjectClick('lamp'); }}
       >
         <div className="fc-lamp-shade" />
         <div className="fc-lamp-stand" />

@@ -75,8 +75,12 @@ export const NumberMemoryPage: React.FC = () => {
     }
   };
 
+  const hasCompleted = useRef(false);
+
   const nextLevel = () => {
     if (level === 5) { // 5 levels total
+      if (hasCompleted.current) return;
+      hasCompleted.current = true;
       completeGameActivity('NUMBER_MEMORY', score, 100, 180, level);
       navigate('/games');
     } else {
@@ -86,6 +90,8 @@ export const NumberMemoryPage: React.FC = () => {
   };
 
   const handleFailFinish = () => {
+    if (hasCompleted.current) return;
+    hasCompleted.current = true;
     completeGameActivity('NUMBER_MEMORY', score, 100, 180, level);
     incrementScore(score); // Commit score up to this point
     navigate('/games');

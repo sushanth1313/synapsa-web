@@ -113,7 +113,10 @@ export const BottomNav: React.FC = () => {
             key={item.id}
             id={`nav-${item.id}`}
             className={`nav-item ${isActive ? 'active' : ''}`}
-            onClick={() => navigate(item.route)}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(item.route);
+            }}
             aria-label={item.label}
             aria-current={isActive ? 'page' : undefined}
           >

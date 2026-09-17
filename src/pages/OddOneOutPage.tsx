@@ -104,9 +104,13 @@ export const OddOneOutPage: React.FC = () => {
     }
   };
 
+  const hasCompleted = useRef(false);
+
   const nextLevel = () => {
     const maxRounds = difficulty <= 2 ? 3 : 5; // More rounds on higher diff
     if (round === maxRounds) {
+      if (hasCompleted.current) return;
+      hasCompleted.current = true;
       const endTime = Date.now();
       const durationMs = endTime - startTime;
       const accuracy = Math.round((maxRounds / Math.max(attempts, maxRounds)) * 100);
@@ -162,7 +166,7 @@ export const OddOneOutPage: React.FC = () => {
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: i * 0.1 }}
-                    onClick={() => handleItemClick(item)}
+                    onClick={(e) => { e.stopPropagation(); handleItemClick(item); }}
                   >
                     {item}
                   </motion.div>

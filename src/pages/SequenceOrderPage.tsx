@@ -100,8 +100,12 @@ export const SequenceOrderPage: React.FC = () => {
     }
   };
 
+  const hasCompleted = useRef(false);
+
   const nextLevel = () => {
     if (level === 3) {
+      if (hasCompleted.current) return;
+      hasCompleted.current = true;
       completeGameActivity('SEQUENCE_ORDER', score, 100, 180, level);
       navigate('/games');
     } else {
@@ -164,7 +168,7 @@ export const SequenceOrderPage: React.FC = () => {
                 <React.Fragment key={`uslot-${i}`}>
                   <div 
                     className={`so-slot ${item ? 'filled' : ''} ${validation[i] ? 'correct' : ''}`}
-                    onClick={() => handleSlotClick(i)}
+                    onClick={(e) => { e.stopPropagation(); handleSlotClick(i); }}
                   >
                     {item}
                   </div>
@@ -180,7 +184,7 @@ export const SequenceOrderPage: React.FC = () => {
                   <div 
                     key={`pool-${i}`} 
                     className={`so-pool-item ${isUsed ? 'used' : ''}`}
-                    onClick={() => !isUsed && handlePoolClick(item)}
+                    onClick={(e) => { e.stopPropagation(); if (!isUsed) handlePoolClick(item); }}
                   >
                     {item}
                   </div>

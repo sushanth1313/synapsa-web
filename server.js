@@ -75,6 +75,36 @@ app.get('/api/patient/:id', (req, res) => {
 });
 // -----------------------------------------------------------------
 
+// Helper to detect Gemini 429 Quota / Rate Limit errors
+function isGeminiQuotaError(err) {
+  if (!err) return false;
+  const errStr = (err.message || '') + ' ' + (typeof err === 'object' ? JSON.stringify(err) : String(err));
+  return (
+    err.status === 429 ||
+    err.code === 429 ||
+    err.statusCode === 429 ||
+    err.response?.status === 429 ||
+    err.error?.code === 429 ||
+    errStr.includes('429') ||
+    errStr.includes('RESOURCE_EXHAUSTED') ||
+    errStr.includes('QuotaExceeded') ||
+    errStr.includes('QUOTA_EXCEEDED') ||
+    errStr.includes('rate limit') ||
+    errStr.includes('request limit')
+  );
+}
+
+function getRetryDelaySeconds(err) {
+  try {
+    const errStr = typeof err === 'object' ? JSON.stringify(err) : String(err);
+    const match = errStr.match(/"retryDelay"\s*:\s*"(\d+)s?"/i) || errStr.match(/"retryDelay"\s*:\s*(\d+)/i) || errStr.match(/retryAfter\s*[:=]\s*(\d+)/i);
+    if (match && match[1]) {
+      return parseInt(match[1], 10);
+    }
+  } catch (e) {}
+  return null;
+}
+
 app.post('/api/chat', async (req, res) => {
   try {
     const { messages, userContext, language } = req.body;
@@ -106,10 +136,19 @@ app.post('/api/chat', async (req, res) => {
 
     const fullSystemPrompt = SYSTEM_PROMPT + contextPrompt + langPrompt;
 
-    let geminiErrorMsg = '';
+    let geminiErrorType = null;
+    let retryDelaySec = null;
+    let traceModel = 'gemini-3.6-flash';
+    let traceHttpStatus = 200;
+    let traceGeminiResponse = 'SUCCESS';
 
     try {
-      if (!gemini) throw new Error("Gemini client not initialized. Check GEMINI_API_KEY.");
+      console.log('NOVA REQUEST RECEIVED: YES');
+      if (!gemini) {
+        traceGeminiResponse = 'ERROR';
+        geminiErrorType = 'AUTH';
+        throw new Error("Gemini client not initialized. Check GEMINI_API_KEY.");
+      }
       
       const history = messages.slice(0, -1).map(msg => ({
         role: msg.role === 'ai' ? 'model' : 'user',
@@ -122,14 +161,14 @@ app.post('/api/chat', async (req, res) => {
       };
 
       if (useSearch) {
-        console.log('Using Gemini with Google Search Grounding...');
         config.tools = [{ googleSearch: {} }];
-      } else {
-        console.log('Using Gemini (Normal mode)...');
       }
 
+      console.log('GEMINI REQUEST SENT: YES');
+      console.log('MODEL:', traceModel);
+
       const response = await gemini.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: traceModel,
         contents: [
           ...history,
           { role: 'user', parts: [{ text: latestMessage }] }
@@ -147,15 +186,98 @@ app.post('/api/chat', async (req, res) => {
         }
       }
 
+      console.log('HTTP STATUS:', traceHttpStatus);
+      console.log('GEMINI RESPONSE:', traceGeminiResponse);
+
     } catch (geminiError) {
-      console.error('Gemini API failed:', geminiError);
-      geminiErrorMsg = geminiError.message || String(geminiError);
+      traceGeminiResponse = 'ERROR';
+      const status = geminiError.status || geminiError.code || geminiError.statusCode || geminiError.response?.status || geminiError.error?.code || 500;
+      traceHttpStatus = status;
+      const errStr = (geminiError.message || '') + ' ' + (typeof geminiError === 'object' ? JSON.stringify(geminiError) : String(geminiError));
+      
+      if (status === 401 || status === 403 || errStr.includes('401') || errStr.includes('403')) {
+        geminiErrorType = 'AUTH';
+      } else if (status === 404 || errStr.includes('404')) {
+        geminiErrorType = 'NOT_FOUND';
+      } else if (status === 429 || errStr.includes('429') || errStr.includes('RESOURCE_EXHAUSTED') || errStr.includes('QuotaExceeded') || errStr.includes('QUOTA_EXCEEDED') || errStr.includes('rate limit') || errStr.includes('request limit')) {
+        geminiErrorType = 'QUOTA';
+        retryDelaySec = getRetryDelaySeconds(geminiError);
+      } else {
+        geminiErrorType = 'OTHER';
+      }
+      
+      console.log('HTTP STATUS:', traceHttpStatus);
+      console.log('GEMINI RESPONSE:', traceGeminiResponse);
+      console.log('ERROR TYPE:', geminiErrorType);
+      console.error('Safe Error Details:', geminiError?.message || geminiErrorType);
     }
 
-    // Ultimate fallback if API failed or missing keys
-    if (!responseText) {
-      console.log("Gemini failed or returned empty. Applying Fallbacks...");
-      responseText = geminiErrorMsg ? `Backend AI Error: ${geminiErrorMsg}` : "I am having some trouble right now, but I am still here. Let's do a memory exercise or check your schedule.";
+    if (geminiErrorType || !responseText) {
+      console.log("Gemini failed or returned empty. Applying Local Fallbacks...");
+
+      const lowerText = latestMessage.toLowerCase();
+      
+      const intents = {
+        mood: ['how are you', 'mood', 'feel good', 'happy', 'feeling', 'ನಾನು ಚೆನ್ನಾಗಿದ್ದೇನೆ', 'ভালে আছো', 'ভাল আছি', 'মই ভালে আছো', 'feel', 'feeling'],
+        game: ['game', 'play', 'ಆಟ', 'খেল', 'গেম'],
+        routine: ['routine', 'schedule', 'what to do', 'today', 'ದಿನಚರಿ', 'ৰুটিন', 'রুটিন'],
+        tired: ['tired', 'calm', 'exhausted', 'ಸುಸ್ತಾಗಿದೆ', 'ভাগৰ', 'ক্লান্ত', 'rest'],
+        help: ['help', 'assist', 'ಸಹಾಯ', 'সহায়', 'সাহায্য', 'support'],
+        important: ['important', 'activity', 'ಮುಖ್ಯ', 'গুৰুত্বপূৰ্ণ', 'গুরুত্বপূর্ণ']
+      };
+
+      const detectIntent = (text) => {
+        for (const [intent, keywords] of Object.entries(intents)) {
+          if (keywords.some(kw => text.includes(kw))) return intent;
+        }
+        return 'unknown';
+      };
+
+      const intent = detectIntent(lowerText);
+      const isKn = targetLanguage === 'Kannada';
+      const isAs = targetLanguage === 'Assamese';
+      const isBn = targetLanguage === 'Bengali';
+
+      let fallbackText = '';
+      
+      if (intent === 'mood') {
+        if (isKn) fallbackText = 'ನಾನು ಚೆನ್ನಾಗಿದ್ದೇನೆ! ನೀವು ಹೇಗಿದ್ದೀರಿ?';
+        else if (isAs) fallbackText = 'মই ভালে আছো! আপুনি কেনে আছে?';
+        else if (isBn) fallbackText = 'আমি ভালো আছি! আপনি কেমন আছেন?';
+        else fallbackText = 'I am doing well! How are you feeling today?';
+      } else if (intent === 'game') {
+        if (isKn) fallbackText = 'ನಾವು ಒಂದು ಆಟ ಆಡೋಣ ಬನ್ನಿ. [NAVIGATE: /games]';
+        else if (isAs) fallbackText = 'আহক আমি এটা খেল খেলোঁ। [NAVIGATE: /games]';
+        else if (isBn) fallbackText = 'আসুন একটি গেম খেলি। [NAVIGATE: /games]';
+        else fallbackText = 'Let\'s play a game together. [NAVIGATE: /games]';
+      } else if (intent === 'routine') {
+        if (isKn) fallbackText = 'ಇಂದಿನ ನಿಮ್ಮ ದಿನಚರಿ ಇಲ್ಲಿದೆ. [NAVIGATE: /routine]';
+        else if (isAs) fallbackText = 'আজিৰ আপোনাৰ ৰুটিন ইয়াত দিয়া হৈছে। [NAVIGATE: /routine]';
+        else if (isBn) fallbackText = 'আজকের আপনার রুটিন এখানে। [NAVIGATE: /routine]';
+        else fallbackText = 'Here is your routine for today. [NAVIGATE: /routine]';
+      } else if (intent === 'tired') {
+        if (isKn) fallbackText = 'ವಿಶ್ರಾಂತಿ ಪಡೆಯಿರಿ. ನಾವು ಕೆಲವು ಶಾಂತಿಯುತ ಚಟುವಟಿಕೆಗಳನ್ನು ಮಾಡೋಣ. [NAVIGATE: /calm]';
+        else if (isAs) fallbackText = 'জিৰণি লওক। আমি কিছু শান্তিপূৰ্ণ কাম কৰোঁ আহক। [NAVIGATE: /calm]';
+        else if (isBn) fallbackText = 'বিশ্রাম নিন। চলুন কিছু শান্ত কার্যকলাপ করি। [NAVIGATE: /calm]';
+        else fallbackText = 'Take some rest. Let us do some calming activities. [NAVIGATE: /calm]';
+      } else if (intent === 'help') {
+        if (isKn) fallbackText = 'ನಾನು ನಿಮಗೆ ಸಹಾಯ ಮಾಡಲು ಇಲ್ಲಿದ್ದೇನೆ. ದಯವಿಟ್ಟು ಏನು ಬೇಕು ಎಂದು ಹೇಳಿ.';
+        else if (isAs) fallbackText = 'মই আপোনাক সহায় কৰিবলৈ ইয়াত আছো। অনুগ্ৰহ কৰি কি লাগে কওক।';
+        else if (isBn) fallbackText = 'আমি আপনাকে সাহায্য করতে এখানে আছি। অনুগ্রহ করে বলুন কী দরকার।';
+        else fallbackText = 'I am here to help you. Please tell me what you need.';
+      } else if (intent === 'important') {
+        if (isKn) fallbackText = 'ನಿಮ್ಮ ಪ್ರಮುಖ ಚಟುವಟಿಕೆಗಳನ್ನು ಇಲ್ಲಿ ನೋಡಬಹುದು. [NAVIGATE: /routine]';
+        else if (isAs) fallbackText = 'আপোনাৰ গুৰুত্বপূৰ্ণ কামবোৰ ইয়াত চাব পাৰে। [NAVIGATE: /routine]';
+        else if (isBn) fallbackText = 'আপনার গুরুত্বপূর্ণ কাজগুলো এখানে দেখতে পারেন। [NAVIGATE: /routine]';
+        else fallbackText = 'You can see your important activities here. [NAVIGATE: /routine]';
+      } else {
+        if (isKn) fallbackText = 'ಕ್ಷಮಿಸಿ, ನನಗೆ ಅರ್ಥವಾಗಲಿಲ್ಲ. ನಾವು ಬೇರೆ ಏನಾದರೂ ಮಾಡೋಣವೇ?';
+        else if (isAs) fallbackText = 'ক্ষমা কৰিব, মই বুজি পোৱা নাই। আমি বেলেগ কিবা কৰোঁ নেকি?';
+        else if (isBn) fallbackText = 'দুঃখিত, আমি বুঝতে পারিনি। আমরা কি অন্য কিছু করব?';
+        else fallbackText = 'I am having some trouble right now, but I am still here. Let\'s do a memory exercise or check your schedule.';
+      }
+      
+      responseText = fallbackText;
     }
 
     let action = null;
@@ -181,6 +303,15 @@ app.get(/.*/, (req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`NOVA AI Backend running on http://localhost:${PORT}`);
-});
+
+if (process.env.VERCEL !== '1') {
+  const server = app.listen(PORT, () => {
+    console.log(`NOVA AI Backend running on http://localhost:${PORT}`);
+  });
+  
+  server.on('error', (err) => {
+    console.error('Server error:', err);
+  });
+}
+
+export default app;

@@ -127,7 +127,10 @@ export const GameIntro: React.FC<GameIntroProps> = ({ title, skill, description,
           <button 
             className="void-btn void-btn--primary" 
             style={{ width: '100%', justifyContent: 'center' }}
-            onClick={() => onStart(difficulty)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onStart(difficulty);
+            }}
           >
             <span>START GAME</span><i></i>
           </button>

@@ -9,40 +9,24 @@ import { DatabaseService } from '../services/DatabaseService';
 import './ObjectRecallPage.css'; // Reuse general layout
 import './RoutineOrderPage.css';
 
-const ROUTINES = [
-  {
-    title: 'Morning Preparation',
-    steps: ['Wake up and stretch', 'Brush teeth', 'Take morning medicine', 'Have breakfast', 'Go for a short walk']
-  },
-  {
-    title: 'Making a Cup of Tea',
-    steps: ['Boil water in the kettle', 'Put a teabag in the cup', 'Pour hot water', 'Add sugar or milk', 'Stir and enjoy']
-  },
-  {
-    title: 'Evening Wind-down',
-    steps: ['Have a light dinner', 'Take evening medicine', 'Lock the doors', 'Listen to calm music', 'Go to sleep']
-  }
-];
-
-type GameState = 'intro' | 'playing' | 'success' | 'complete';
-
 export const RoutineOrderPage: React.FC = () => {
   const navigate = useNavigate();
   const reduced = useReducedMotion();
-  const { currentUser, incrementScore, completeGameActivity, locale } = useAppStore();
+  const { currentUser, incrementScore, completeGameActivity, locale, routineItems } = useAppStore();
   const strings = getStrings(locale);
 
   const [gameState, setGameState] = useState<GameState>('intro');
   const [round, setRound] = useState(1);
   const [score, setScore] = useState(0);
-  const scoreRef = useRef(0);        // mirrors score; readable inside closures without stale state
-  const attemptsRef = useRef(0);     // mirrors attempts; readable inside closures without stale state
+  const scoreRef = useRef(0);
+  const attemptsRef = useRef(0);
 
   const [difficulty, setDifficulty] = useState(1);
   const [attempts, setAttempts] = useState(0);
   const [startTime, setStartTime] = useState(0);
 
-  const [currentRoutine, setCurrentRoutine] = useState<typeof ROUTINES[0] | null>(null);
+  // We map the actual user routines to an array of titles for them to order
+  const [currentRoutineSteps, setCurrentRoutineSteps] = useState<string[]>([]);
   const [pool, setPool] = useState<string[]>([]);
   
   // Array of placed steps (null if empty slot)
@@ -65,21 +49,22 @@ export const RoutineOrderPage: React.FC = () => {
   };
 
   const startRound = (currentRound: number) => {
-    const routineBase = ROUTINES[(currentRound - 1) % ROUTINES.length];
+    // Only daily routines
+    const dailyRoutines = (routineItems || []).filter(r => r.repeat === 'daily');
     
-    // Adapt complexity: Easy = 3 steps, Medium = 4 steps, Hard = 5 steps
+    // Sort them chronologically by time
+    const sortedByTime = [...dailyRoutines].sort((a, b) => a.scheduledTime.localeCompare(b.scheduledTime));
+    
+    // Take up to `stepCount` routines for this round
     const stepCount = difficulty <= 2 ? 3 : difficulty === 3 ? 4 : 5;
-    const adaptedSteps = routineBase.steps.slice(0, stepCount);
     
-    const routine = {
-      title: routineBase.title,
-      steps: adaptedSteps
-    };
-
-    setCurrentRoutine(routine);
+    // If we have fewer than 3 routines, just use what we have (or they shouldn't even be able to start)
+    const adaptedSteps = sortedByTime.slice(0, stepCount).map(r => r.title);
     
-    setUserSequence(new Array(routine.steps.length).fill(null));
-    setPool([...routine.steps].sort(() => 0.5 - Math.random()));
+    setCurrentRoutineSteps(adaptedSteps);
+    
+    setUserSequence(new Array(adaptedSteps.length).fill(null));
+    setPool([...adaptedSteps].sort(() => 0.5 - Math.random()));
     setValidation([]);
     setGameState('playing');
   };
@@ -105,12 +90,15 @@ export const RoutineOrderPage: React.FC = () => {
     }
   };
 
+  const [isProcessing, setIsProcessing] = useState(false);
+
   const checkAnswer = () => {
-    if (!currentRoutine) return;
+    if (currentRoutineSteps.length === 0 || isProcessing) return;
+    setIsProcessing(true);
 
     let allCorrect = true;
     const newValidation = userSequence.map((item, idx) => {
-      const isCorrect = item === currentRoutine.steps[idx];
+      const isCorrect = item === currentRoutineSteps[idx];
       if (!isCorrect) allCorrect = false;
       return isCorrect;
     });
@@ -124,22 +112,32 @@ export const RoutineOrderPage: React.FC = () => {
       scoreRef.current += points;
       setScore(scoreRef.current);
       incrementScore(points);
-      setTimeout(() => setGameState('success'), 1000);
+      setTimeout(() => {
+        setGameState('success');
+        setIsProcessing(false);
+      }, 1000);
     } else {
       setTimeout(() => {
         // Clear wrong ones
         setUserSequence(prev => prev.map((item, idx) => newValidation[idx] ? item : null));
         setValidation([]);
+        setIsProcessing(false);
       }, 1000);
     }
   };
 
+  const hasCompleted = useRef(false);
+
   const nextLevel = () => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+
     const maxRounds = 3;
     if (round === maxRounds) {
+      if (hasCompleted.current) return;
+      hasCompleted.current = true;
       const endTime = Date.now();
       const durationMs = endTime - startTime;
-      // Use refs so we read the real accumulated values, not stale React state
       const finalScore = scoreRef.current;
       const finalAttempts = attemptsRef.current;
       const accuracy = Math.round((maxRounds / Math.max(finalAttempts, maxRounds)) * 100);
@@ -148,14 +146,19 @@ export const RoutineOrderPage: React.FC = () => {
       completeGameActivity('DAILY_RECALL', finalScore, accuracy, Math.round(durationMs / 1000), difficulty);
       
       setGameState('complete');
+      setIsProcessing(false);
     } else {
       const nextR = round + 1;
       setRound(nextR);
       startRound(nextR);
+      setIsProcessing(false);
     }
   };
 
   const isFull = !userSequence.includes(null);
+
+  const dailyRoutines = (routineItems || []).filter(r => r.repeat === 'daily');
+  const hasEnoughRoutines = dailyRoutines.length >= 3;
 
   return (
     <div className="routine-order-page object-recall-page">
@@ -176,15 +179,22 @@ export const RoutineOrderPage: React.FC = () => {
           >
             <motion.h1 className="game-title" variants={fadeUp}>Daily Routine Recall</motion.h1>
             <motion.p className="game-instruction" variants={fadeUp}>
-              Reconstruct familiar daily activities in the correct chronological order.
+              {hasEnoughRoutines 
+                ? "Reconstruct your actual daily routines in the correct chronological order."
+                : "You need at least 3 daily routines scheduled in the Routine tab to play this game."}
             </motion.p>
-            <motion.button className="start-btn" variants={fadeUp} onClick={startGame}>{strings.start_game || 'Start Game'}</motion.button>
+            {hasEnoughRoutines && (
+              <motion.button className="start-btn" variants={fadeUp} onClick={startGame}>{strings.start_game || 'Start Game'}</motion.button>
+            )}
+            {!hasEnoughRoutines && (
+              <motion.button className="start-btn" variants={fadeUp} onClick={() => navigate('/routine')}>Go to Routines</motion.button>
+            )}
           </motion.div>
         )}
 
-        {gameState === 'playing' && currentRoutine && (
+        {gameState === 'playing' && currentRoutineSteps.length > 0 && (
           <motion.div key="playing" className="game-screen" style={{ maxWidth: '1200px' }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-            <h2 className="game-instruction">Routine: <strong>{currentRoutine.title}</strong></h2>
+            <h2 className="game-instruction">Arrange your routines chronologically:</h2>
             
             <div className="ro-container">
               

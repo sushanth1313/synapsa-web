@@ -92,8 +92,12 @@ export const WordMemoryPage: React.FC = () => {
     }, 800);
   };
 
+  const hasCompleted = useRef(false);
+
   const nextLevel = () => {
     if (level === 3) {
+      if (hasCompleted.current) return;
+      hasCompleted.current = true;
       completeGameActivity('WORD_MEMORY', score, 100, 180, level);
       navigate('/games');
     } else {
