@@ -33,34 +33,6 @@ export const OnboardingPage: React.FC = () => {
       setCurrentUser({ ...currentUser, userMode: userMode as 'patient' | 'caregiver' });
     }
 
-    const routines: Omit<RoutineItem, 'id'>[] = [];
-    const baseTime = 8; // 8 AM
-
-    // Basic common routine
-    routines.push({ userId: currentUser.id, title: 'Morning Medicine', type: 'medication', icon: '💊', scheduledTime: '08:00', repeat: 'daily', reminderEnabled: true });
-    routines.push({ userId: currentUser.id, title: 'Morning Hydration', type: 'hydration', icon: '💧', scheduledTime: '10:00', repeat: 'daily', reminderEnabled: true });
-
-    // Focus area routine
-    if (focusArea === 'Memory') {
-      routines.push({ userId: currentUser.id, title: 'Memory Activity', type: 'activity', icon: '🧠', scheduledTime: '11:00', repeat: 'daily', reminderEnabled: true });
-    } else if (focusArea === 'Daily Recall') {
-      routines.push({ userId: currentUser.id, title: 'Daily Recall', type: 'activity', icon: '🗓️', scheduledTime: '11:00', repeat: 'daily', reminderEnabled: true });
-    } else {
-      routines.push({ userId: currentUser.id, title: 'Cognitive Session', type: 'activity', icon: '🧩', scheduledTime: '11:00', repeat: 'daily', reminderEnabled: true });
-    }
-
-    // Goal routine
-    if (goal === 'Emotional Wellness' || goal === 'Stay Mentally Active') {
-      routines.push({ userId: currentUser.id, title: 'Family Call', type: 'activity', icon: '👨‍👩‍👧', scheduledTime: '18:00', repeat: 'daily', reminderEnabled: true });
-    } else {
-      routines.push({ userId: currentUser.id, title: 'Evening Walk', type: 'activity', icon: '🚶', scheduledTime: '17:00', repeat: 'daily', reminderEnabled: true });
-    }
-    
-    routines.push({ userId: currentUser.id, title: 'Evening Medicine', type: 'medication', icon: '💊', scheduledTime: '20:00', repeat: 'daily', reminderEnabled: true });
-
-    // Save all
-    routines.forEach(r => DatabaseService.saveRoutine(r));
-
     // Exit onboarding
     navigate('/');
     document.body.removeAttribute('data-hide-nav');

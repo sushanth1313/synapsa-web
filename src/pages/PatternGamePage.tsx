@@ -243,7 +243,7 @@ export const PatternGamePage: React.FC = () => {
     <div className="pattern-page" id="pattern-game-page">
       {/* Header */}
       <div className="game-header">
-        <button className="game-back-btn" onClick={() => { showingRef.current = false; navigate('/games'); }}>
+        <button className="game-back-btn" onClick={(e) => { e.stopPropagation(); showingRef.current = false; navigate('/games'); }}>
           ← Games
         </button>
         {phase !== 'intro' && (

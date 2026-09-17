@@ -38,7 +38,11 @@ export const RoutineOrderPage: React.FC = () => {
     setDifficulty(diff);
   }, [currentUser]);
 
-  const startGame = () => {
+  const startGame = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     setRound(1);
     setScore(0);
     scoreRef.current = 0;
@@ -69,7 +73,11 @@ export const RoutineOrderPage: React.FC = () => {
     setGameState('playing');
   };
 
-  const handlePoolClick = (item: string) => {
+  const handlePoolClick = (item: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     if (gameState !== 'playing') return;
     
     // Find first empty slot
@@ -81,7 +89,11 @@ export const RoutineOrderPage: React.FC = () => {
     }
   };
 
-  const handleSlotClick = (index: number) => {
+  const handleSlotClick = (index: number, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     if (gameState !== 'playing') return;
     if (userSequence[index] !== null) {
       const newSeq = [...userSequence];
@@ -92,7 +104,11 @@ export const RoutineOrderPage: React.FC = () => {
 
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const checkAnswer = () => {
+  const checkAnswer = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     if (currentRoutineSteps.length === 0 || isProcessing) return;
     setIsProcessing(true);
 
@@ -128,7 +144,11 @@ export const RoutineOrderPage: React.FC = () => {
 
   const hasCompleted = useRef(false);
 
-  const nextLevel = () => {
+  const nextLevel = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     if (isProcessing) return;
     setIsProcessing(true);
 
@@ -164,7 +184,7 @@ export const RoutineOrderPage: React.FC = () => {
     <div className="routine-order-page object-recall-page">
       
       <div className="game-header">
-        <button className="game-back-btn" onClick={() => navigate('/games')}>← Exit</button>
+        <button className="game-back-btn" onClick={(e) => { e.stopPropagation(); navigate('/games'); }}>← Exit</button>
         <div className="game-stats">
           <div>Round <span className="stat-value">{round}/3</span></div>
           <div>Lvl <span className="stat-value">{difficulty}</span></div>
@@ -187,7 +207,7 @@ export const RoutineOrderPage: React.FC = () => {
               <motion.button className="start-btn" variants={fadeUp} onClick={startGame}>{strings.start_game || 'Start Game'}</motion.button>
             )}
             {!hasEnoughRoutines && (
-              <motion.button className="start-btn" variants={fadeUp} onClick={() => navigate('/routine')}>Go to Routines</motion.button>
+              <motion.button className="start-btn" variants={fadeUp} onClick={(e: any) => { e.stopPropagation(); navigate('/routine'); }}>Go to Routines</motion.button>
             )}
           </motion.div>
         )}
@@ -205,7 +225,7 @@ export const RoutineOrderPage: React.FC = () => {
                   <div 
                     key={`slot-${i}`}
                     className={`ro-slot ${item ? 'filled' : ''} ${validation[i] ? 'correct' : ''}`}
-                    onClick={() => handleSlotClick(i)}
+                    onClick={(e) => handleSlotClick(i, e)}
                   >
                     <div className="ro-slot-num">{i + 1}</div>
                     {item}
@@ -222,7 +242,7 @@ export const RoutineOrderPage: React.FC = () => {
                     <div 
                       key={`pool-${i}`}
                       className={`ro-pool-item ${isUsed ? 'used' : ''}`}
-                      onClick={() => !isUsed && handlePoolClick(item)}
+                      onClick={(e) => !isUsed && handlePoolClick(item, e)}
                     >
                       {item}
                     </div>
@@ -256,7 +276,7 @@ export const RoutineOrderPage: React.FC = () => {
           <motion.div key="complete" className="game-screen" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}>
             <motion.h1 className="game-title" style={{ color: 'var(--color-tea-green)' }} variants={fadeUp}>Routine Complete</motion.h1>
             <motion.p className="game-instruction" variants={fadeUp}>Excellent cognitive work! Difficulty is being adapted for next time.</motion.p>
-            <motion.button className="start-btn" variants={fadeUp} onClick={() => navigate('/games')}>
+            <motion.button className="start-btn" variants={fadeUp} onClick={(e: any) => { e.stopPropagation(); navigate('/games'); }}>
               Return to Games
             </motion.button>
           </motion.div>

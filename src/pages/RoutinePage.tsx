@@ -38,7 +38,11 @@ export const RoutinePage: React.FC = () => {
     .sort((a, b) => a.scheduledTime.localeCompare(b.scheduledTime))
     .find(r => !r.completedAt)?.id;
 
-  const handleComplete = (id: string) => {
+  const handleComplete = (id: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     setConfirming(id);
   };
 
@@ -209,7 +213,7 @@ export const RoutinePage: React.FC = () => {
                       {!item.completedAt && (
                         <motion.button
                           className="routine-complete-btn"
-                          onClick={() => handleComplete(item.id)}
+                          onClick={(e) => handleComplete(item.id, e as any)}
                           aria-label={`Mark ${item.label} as done`}
                           whileHover={reduced ? {} : buttonHover.hover}
                           whileTap={reduced ? {} : buttonHover.tap}
@@ -279,7 +283,7 @@ export const RoutinePage: React.FC = () => {
               <div className="confirm-actions">
                 <motion.button 
                   className="confirm-btn confirm-btn--yes" 
-                  onClick={() => confirmComplete(confirming!)}
+                  onClick={(e: any) => { e.stopPropagation(); confirmComplete(confirming!); }}
                   whileHover={reduced ? {} : buttonHover.hover}
                   whileTap={reduced ? {} : buttonHover.tap}
                 >
@@ -287,7 +291,7 @@ export const RoutinePage: React.FC = () => {
                 </motion.button>
                 <motion.button 
                   className="confirm-btn confirm-btn--no" 
-                  onClick={() => setConfirming(null)}
+                  onClick={(e: any) => { e.stopPropagation(); setConfirming(null); }}
                   whileHover={reduced ? {} : buttonHover.hover}
                   whileTap={reduced ? {} : buttonHover.tap}
                 >

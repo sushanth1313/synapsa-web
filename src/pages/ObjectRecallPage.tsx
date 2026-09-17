@@ -30,7 +30,11 @@ export const ObjectRecallPage: React.FC = () => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Setup a new round based on level
-  const startRound = () => {
+  const startRound = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     const targetCount = Math.min(3 + level, 8); // Start with 4, max 8
     const poolCount = Math.min(targetCount * 2 + 2, 16); // Total pool to pick from
 
@@ -80,7 +84,11 @@ export const ObjectRecallPage: React.FC = () => {
     setSelectedObjects(newSel);
   };
 
-  const checkAnswer = () => {
+  const checkAnswer = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     let correct = 0;
     let wrong = 0;
     const newValidation: Record<string, 'correct'|'wrong'> = {};
@@ -129,7 +137,11 @@ export const ObjectRecallPage: React.FC = () => {
 
   const hasCompleted = useRef(false);
 
-  const nextLevel = () => {
+  const nextLevel = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     if (level === 3) {
       if (hasCompleted.current) return;
       hasCompleted.current = true;
@@ -148,7 +160,7 @@ export const ObjectRecallPage: React.FC = () => {
     <div className="object-recall-page">
       
       <div className="game-header">
-        <button className="game-back-btn" onClick={() => navigate('/games')}>← Exit</button>
+        <button className="game-back-btn" onClick={(e) => { e.stopPropagation(); navigate('/games'); }}>← Exit</button>
         <div className="game-stats">
           <div>Level <span className="stat-value">{level}/3</span></div>
           <div>Score <span className="stat-value">{score}</span></div>

@@ -31,7 +31,11 @@ export const SequenceOrderPage: React.FC = () => {
   
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const startRound = () => {
+  const startRound = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     const seqLength = level === 1 ? 4 : level === 2 ? 5 : 6;
     
     const shuffled = [...ICONS].sort(() => 0.5 - Math.random());
@@ -55,7 +59,11 @@ export const SequenceOrderPage: React.FC = () => {
     };
   }, []);
 
-  const handlePoolClick = (item: string) => {
+  const handlePoolClick = (item: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     if (gameState !== 'arranging') return;
     
     // Find first empty slot
@@ -67,7 +75,11 @@ export const SequenceOrderPage: React.FC = () => {
     }
   };
 
-  const handleSlotClick = (index: number) => {
+  const handleSlotClick = (index: number, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     if (gameState !== 'arranging') return;
     if (userSequence[index] !== null) {
       const newSeq = [...userSequence];
@@ -76,7 +88,11 @@ export const SequenceOrderPage: React.FC = () => {
     }
   };
 
-  const checkAnswer = () => {
+  const checkAnswer = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     let allCorrect = true;
     const newValidation = userSequence.map((item, idx) => {
       const isCorrect = item === sequence[idx];
@@ -102,7 +118,11 @@ export const SequenceOrderPage: React.FC = () => {
 
   const hasCompleted = useRef(false);
 
-  const nextLevel = () => {
+  const nextLevel = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     if (level === 3) {
       if (hasCompleted.current) return;
       hasCompleted.current = true;
@@ -120,7 +140,7 @@ export const SequenceOrderPage: React.FC = () => {
     <div className="sequence-order-page object-recall-page">
       
       <div className="game-header">
-        <button className="game-back-btn" onClick={() => navigate('/games')}>← Exit</button>
+        <button className="game-back-btn" onClick={(e) => { e.stopPropagation(); navigate('/games'); }}>← Exit</button>
         <div className="game-stats">
           <div>Level <span className="stat-value">{level}/3</span></div>
           <div>Score <span className="stat-value">{score}</span></div>
@@ -168,7 +188,7 @@ export const SequenceOrderPage: React.FC = () => {
                 <React.Fragment key={`uslot-${i}`}>
                   <div 
                     className={`so-slot ${item ? 'filled' : ''} ${validation[i] ? 'correct' : ''}`}
-                    onClick={(e) => { e.stopPropagation(); handleSlotClick(i); }}
+                    onClick={(e) => handleSlotClick(i, e)}
                   >
                     {item}
                   </div>
@@ -184,7 +204,7 @@ export const SequenceOrderPage: React.FC = () => {
                   <div 
                     key={`pool-${i}`} 
                     className={`so-pool-item ${isUsed ? 'used' : ''}`}
-                    onClick={(e) => { e.stopPropagation(); if (!isUsed) handlePoolClick(item); }}
+                    onClick={(e) => !isUsed && handlePoolClick(item, e)}
                   >
                     {item}
                   </div>

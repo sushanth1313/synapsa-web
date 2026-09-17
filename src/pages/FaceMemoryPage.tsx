@@ -39,7 +39,11 @@ export const FaceMemoryPage: React.FC = () => {
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const startRound = () => {
+  const startRound = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     const pairCount = level === 1 ? 3 : level === 2 ? 4 : 5;
     
     // Pick unique persons
@@ -84,7 +88,11 @@ export const FaceMemoryPage: React.FC = () => {
     }
   };
 
-  const checkAnswer = () => {
+  const checkAnswer = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     let allCorrect = true;
     const newValidation = userAnswers.map((ans, idx) => {
       const isCorrect = ans === targetPairs[idx].emotion;
@@ -110,7 +118,11 @@ export const FaceMemoryPage: React.FC = () => {
 
   const hasCompleted = useRef(false);
 
-  const nextLevel = () => {
+  const nextLevel = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     if (level === 3) {
       if (hasCompleted.current) return;
       hasCompleted.current = true;
@@ -128,7 +140,7 @@ export const FaceMemoryPage: React.FC = () => {
     <div className="face-memory-page object-recall-page">
       
       <div className="game-header">
-        <button className="game-back-btn" onClick={() => navigate('/games')}>← Exit</button>
+        <button className="game-back-btn" onClick={(e) => { e.stopPropagation(); navigate('/games'); }}>← Exit</button>
         <div className="game-stats">
           <div>Level <span className="stat-value">{level}/3</span></div>
           <div>Score <span className="stat-value">{score}</span></div>
